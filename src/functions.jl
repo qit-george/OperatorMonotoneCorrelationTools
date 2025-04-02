@@ -41,9 +41,23 @@ function krausaction(Ak,Bk,input)
     return rhoout
 end
 
-function convertAtobasisofB(A,B)
-    
-end
+"""
+    basischange(A,B)
 
-function operatorJ(f,sigma)
+Expresses a square linear operator A in the eigenbasis of B where
+the eigenbasis is expressed with the k-th eigenvector corresponding to
+the k-th largest eigenvalue of sigma.
+"""
+function basischange(A,B)
+    !isapprox(B,B',atol=1e-6) ? throw(ArgumentError("B is not hermitian")) : nothing
+    size(A)[1] != size(A)[2] ? throw(ArgumentError("A is not square")) : nothing
+    d = size(B)[1]
+    basis = eigvecs(B)
+    Ap = zeros(d,d)
+    for i = 1:size(B)[1]
+        for j = 1:size(B)[2]
+            Ap[i,j] = basis[:,i]'*A*basis[:,j]
+        end
+    end
+    return Ap
 end

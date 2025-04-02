@@ -118,4 +118,30 @@ end
     end
 end
 
+@testset "basischange" begin
+    #check it throws errors properly
+    A = [ 1 2 5 ; 3 4 6]
+    B = [1 2im ; -2im 3]
+    @test_throws ArgumentError basischange(A,B)
+    A = [ 1 2 ; 3 4]
+    B = [1 2im ; 2im 3]
+    @test_throws ArgumentError basischange(A,B)
+
+    #check it changes bases properly
+    #checking for Pauli bases
+    A = [1 0 ; 0 0]
+    B = [0 1 ; 1 0] #sigmaX
+    @test isapprox(basischange(A,B),1/2*[1 -1; -1 1], atol=1e-6)
+    A = [0 0 ; 0 1]
+    @test isapprox(basischange(A,B),1/2*[1 1; 1 1], atol=1e-6) 
+    B = [0 -1im ; 1im 0] #sigmaY
+    @test isapprox(basischange(A,B),1/2*[1 -1; -1 1], atol=1e-6)
+    A = [1 0 ; 0 0]
+    @test isapprox(basischange(A,B),1/2*[1 1; 1 1], atol=1e-6)
+
+    A = [1 2 3 ; 4 5 6 ; 7 8 9]
+    B = [0 1 0 ; 1 0 0 ; 0 0 0]
+    @test isapprox(basischange(A,B), [0 -3/sqrt(2) -3 ; -1/sqrt(2) 9 15/sqrt(2) ; -1 9/sqrt(2) 6], atol=1e-6)
+end
+
 end
