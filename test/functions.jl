@@ -73,10 +73,4 @@ using OperatorMonotoneCorrelationTools
         end
     end
 end
-
-
-
-
-end
-
 end
