@@ -3,6 +3,10 @@ uuid = "2cd382f1-7673-4e3c-8ed9-302affc1aa95"
 authors = ["Ian George <qit.george@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+
 [compat]
 julia = "1"
 
