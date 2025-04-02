@@ -73,4 +73,49 @@ using OperatorMonotoneCorrelationTools
         end
     end
 end
+
+@testset "krausaction" begin
+    #Testing the identity channel
+    for d = 2:5
+        idMat = Matrix(I,d,d)
+        Ak = Matrix{Any}[]
+        Bk = Matrix{Any}[]
+        push!(Ak, idMat)
+        push!(Bk, idMat)
+        X = reshape(collect(1:1:d^2),(d,d))
+
+        @test isapprox(krausaction(Ak,Bk,X),X,atol=1e-6)
+    end
+
+    #Testing the qubit depolarizing channel
+    for p = 0:0.1:1
+        idMat = Matrix(I,2,2);
+        sigmaX = [0 1 ; 1 0];
+        sigmaY = [0 -1im ; 1im 0];
+        sigmaZ = [1 0 ; 0 -1];
+        Ak = [sqrt(1-3*p/4)*idMat, sqrt(p/4)*sigmaX, sqrt(p/4)*sigmaY, sqrt(p/4)*sigmaZ];
+        Bk = Ak;
+        rhoin = [1 0 ; 0 0];
+        rhoouttrue = (1-p)*rhoin + p/2*idMat;
+        rhoout = krausaction(Ak,Bk,rhoin);
+        @test isapprox(rhoout,rhoouttrue,atol=1e-6)
+    end
+
+    #Testing the transpose channel to check it works with linear maps more generally
+    for d = 2:5
+        Ak = Matrix{Any}[]
+        Bk = Matrix{Any}[]
+        for i = 1:d
+            for j = 1:d
+                Eij = zeros(d,d)
+                Eij[i,j] = 1
+                push!(Ak, Eij)
+                push!(Bk, transpose(Eij))
+            end
+        end
+        X = reshape(collect(1:1:d^2),(d,d))
+        @test isapprox(transpose(X),krausaction(Ak,Bk,X), atol=1e-6)
+    end
+end
+
 end
