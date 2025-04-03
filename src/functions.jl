@@ -42,6 +42,47 @@ function krausaction(Ak,Bk,input)
 end
 
 """
+    perspective(x,y,f,f0,fpinf)
+
+For a given function f, this computes the perspective function 
+```math
+    P_{f}(x,y) \\coloneq \\begin{cases}
+        yf(x/y) & x,y > 0  , \\
+        yf(0^{+}) & x = 0 , \\
+        xf'(+\\infty) & y = 0 
+    \\end{cases}
+```
+where ``0f(0/0) \\coloneq 0``, ``0\\cdot \\infty \\coloneq 0``,
+```math
+    f(0^{+}) \\coloneq \\lim_{x \\downarrow 0} f(x)  , \\quad \\text{and} \\quad f'(+\\infty) \\coloneq \\lim_{x \\to +\\infty} \\frac{f(x)}{x} . 
+```
+We note that we allow one to control f0 and fpinf. The function will not work if these values are wrong. 
+We assume you will put Inf (resp. -Inf) if f0 or fpinf is infinite.
+"""
+function perspective(x,y,f,f0,fpinf)
+    if x > 0 && y > 0
+        return y*f(x/y)
+    elseif x ==0 && y > 0
+        if f0 == Inf || f0 == -Inf
+            throw(ArgumentError("Perspective function is infinite"))
+        else
+            return y*f0
+        end
+    elseif x > 0 && y == 0
+        if fpinf == Inf || fpinf == -Inf
+            throw(ArgumentError("Perspective function is infinite"))
+        else
+            return x*fpinf
+        end
+    elseif x == 0 && y == 0
+        throw(ArgumentError("one of x,y must be greater than zero"))
+    else
+        throw(ArgumentError("neither x nor y can be negative"))
+    end
+end
+
+
+"""
     basischange(A,B)
 
 Expresses a square linear operator A in the eigenbasis of B where

@@ -144,4 +144,36 @@ end
     @test isapprox(basischange(A,B), [0 -3/sqrt(2) -3 ; -1/sqrt(2) 9 15/sqrt(2) ; -1 9/sqrt(2) 6], atol=1e-6)
 end
 
+@testset "perspective" begin
+    #Testing f(x)=x
+    function f(x)
+        return x
+    end
+    x,y = 1,-2
+    @test_throws ArgumentError perspective(x,y,f,0,1)
+    x,y = -1,2
+    @test_throws ArgumentError perspective(x,y,f,0,1)
+    x,y = 1,2
+    @test perspective(x,y,f,0,1) == 1
+    x,y = 1,0
+    @test perspective(x,y,f,0,1) == 1
+    x,y = 0,1
+    @test perspective(x,y,f,0,1) == 0
+
+    #Testing f(x) = sqrt(x)
+    function f(x)
+        return sqrt(x)
+    end
+    x,y = 1,-2
+    @test_throws ArgumentError perspective(x,y,f,0,1)
+    x,y = -1,2
+    @test_throws ArgumentError perspective(x,y,f,0,1)
+    x,y = 1,2
+    @test isapprox(perspective(x,y,f,0,0),sqrt(2),atol=1e-6)
+    x,y = 3,0
+    @test perspective(x,y,f,0,0) == 0
+    x,y = 0,4
+    @test perspective(x,y,f,0,0) == 0
+end
+
 end
