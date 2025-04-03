@@ -176,4 +176,75 @@ end
     @test perspective(x,y,f,0,0) == 0
 end
 
+@testset "innerproductf" begin
+    #If sigma is uniform and f(1)=1, then it is the HS inner product up to (1/d)^p
+    function f(x)
+        return x
+    end
+    for d = 1:4
+        for p = -2:1:2
+            for t = 1:5
+                sigma = 1/d*Matrix(I,d,d)
+                X = rand(d,d)
+                Y = rand(d,d)
+                t = innerproductf(X,Y,sigma,p,f,0,1)
+                ttrue = (1/d)^(p)*tr(X'*Y)
+                @test isapprox(t,ttrue,atol=1e-10)
+            end
+        end
+    end
+    function f(x)
+        return sqrt(x)
+    end
+    for d = 1:4
+        for p = -2:1:2
+            for t = 1:5
+                sigma = 1/d*Matrix(I,d,d)
+                X = rand(d,d)
+                Y = rand(d,d)
+                t = innerproductf(X,Y,sigma,p,f,0,0)
+                ttrue = (1/d)^(p)*tr(X'*Y)
+                @test isapprox(t,ttrue,atol=1e-10)
+            end
+        end
+    end
+    #tests arithmetic mean
+    function f(x)
+        return (x+1)/2
+    end
+    for d = 1:4
+        for p = -2:1:2
+            for t = 1:5
+                sigma = 1/d*Matrix(I,d,d)
+                X = rand(d,d)
+                Y = rand(d,d)
+                t = innerproductf(X,Y,sigma,p,f,1/2,1/2)
+                ttrue = (1/d)^(p)*tr(X'*Y)
+                @test isapprox(t,ttrue,atol=1e-10)
+            end
+        end
+    end
+    #one case where σ is non-uniform
+    σ = [1/2 -1/4 ; -1/4 1/2]
+    X = [1 2 ; 3 5]
+    Y = [5 6 ; 7 4]
+    for p = -2:1/2:2
+        function f(x)
+            return x
+        end
+        ttrue = 11^(2)/2 * (1/4)^(p) - 3/2*(3/4)^(p) *f(1/3)^(p) - (3/4)^(p)
+        @test isapprox(innerproductf(X,Y,σ,p,f,0,1),ttrue,atol=1e-6)
+        function f(x)
+            return sqrt(x)
+        end
+        ttrue = 11^(2)/2 * (1/4)^(p) - 3/2*(3/4)^(p) *f(1/3)^(p) - (3/4)^(p)
+        @test isapprox(innerproductf(X,Y,σ,p,f,0,0),ttrue,atol=1e-6)
+        function f(x)
+            return (x+1)/2
+        end
+        ttrue = 11^(2)/2 * (1/4)^(p) - 3/2*(3/4)^(p) *f(1/3)^(p) - (3/4)^(p)
+        @test isapprox(innerproductf(X,Y,σ,p,f,1/2,1/2),ttrue,atol=1e-6)
+    end
+end
+
 end

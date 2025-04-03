@@ -1,8 +1,11 @@
 """
     choitokraus(choi,dA,dB)
 
+
+    choitokraus(choi,dA,dB)
+
 Converts a Choi operator of a linear map to its Kraus representation.
-The identity relies on the vec mapping in the computational bases: ``vec:\\vert j \\rangle_{B} \\langle i \\vert_{A} \\to \\langle i \\vert_{A}vec:\\vert j \\langle_{B}``.
+The identity relies on the vec mapping in the computational bases: ``vec:\vert j \rangle_{B} \langle i \vert_{A} \to \langle i \vert_{A}vec:\vert j \langle_{B}``.
 This is equivalent to stacking columns of the matrix on top of each other, which is the vec mapping for Julia.
 """
 function choitokraus(choi,dA,dB)
@@ -75,7 +78,7 @@ function perspective(x,y,f,f0,fpinf)
             return x*fpinf
         end
     elseif x == 0 && y == 0
-        throw(ArgumentError("one of x,y must be greater than zero"))
+        return 0
     else
         throw(ArgumentError("neither x nor y can be negative"))
     end
@@ -101,4 +104,31 @@ function basischange(A,B)
         end
     end
     return Ap
+end
+
+"""
+    innerproductf(X,Y,sigma,p,f,f0,fpinf)
+
+This function computes ``\\langle X , Y \\rangle_{\\mathbf{J}^{p}_{f,\\sigma}}``.
+Note that it does not check the function f is an operator monotone function.
+"""
+function innerproductf(X,Y,sigma,p,f,f0,fpinf)
+    #Note that the eigenvectors are ordered according to increasing eigenvalues
+    d = size(sigma)[1]
+    Z = zeros(d,d)
+    X = X' #we just overwrite it as we never use X directly
+    Xastp = zeros(d,d)
+    λ,basis = eigen(sigma)
+    for i = 1:d
+        for j = 1:d
+            Xastp[i,j] = basis[:,i]'*X*basis[:,j]
+            t = perspective(λ[i],λ[j],f,f0,fpinf)
+            if p < 0 && t==0 #keeps track of the pseudoinverse aspect
+                Z[i,j] = 0
+            else
+                Z[i,j] = t^p*basis[:,i]'*Y*basis[:,j]
+            end
+        end
+    end
+    return tr(Xastp*Z)
 end
