@@ -247,4 +247,46 @@ end
     end
 end
 
+@testset "Jfpsigma" begin
+    #If sigma is uniform, the operator is just rescaled by (1/d)^p
+    function f(x)
+        return x
+    end
+    f0 = 0
+    fpinf =1
+    for d = 2:5
+        for p = -2:1/2:2
+            sigma = 1 / d * Matrix(I, d, d)
+            Y = rand(d,d)
+            
+            Yout = Jfpsigma(Y, sigma, p, f, f0, fpinf)
+            Ytrue = (1 / d)^(p) * Y
+            @test isapprox(Yout, Ytrue, atol=1e-10)
+        end
+    end
+
+    for i = 1:2
+        if i == 1
+            function f(x)
+                return sqrt(x)
+            end
+            f0 = 0
+            fpinf =0
+        else
+            function f(x)
+                return (x+1)/2
+            end
+            f0 = 1/2
+            fpinf = 1/2
+        end
+        for p = -2:1/2:2
+            σ = [1/2 -1/4; -1/4 1/2]
+            Y = [5 6; 7 4]
+            Ytrue = [11*perspective(1/4,1/4,f,f0,fpinf)^p perspective(1/4,3/4,f,f0,fpinf)^p ; 0 -2*perspective(3/4,3/4,f,f0,fpinf)^p]
+            Yout = Jfpsigma(Y, σ, p, f, f0, fpinf)
+            @test isapprox(Yout, Ytrue, atol=1e-10)
+        end
+    end
+end
+
 end

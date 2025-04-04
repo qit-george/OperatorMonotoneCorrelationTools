@@ -1,11 +1,8 @@
 """
     choitokraus(choi,dA,dB)
 
-
-    choitokraus(choi,dA,dB)
-
 Converts a Choi operator of a linear map to its Kraus representation.
-The identity relies on the vec mapping in the computational bases: ``vec:\vert j \rangle_{B} \langle i \vert_{A} \to \langle i \vert_{A}vec:\vert j \langle_{B}``.
+The identity relies on the vec mapping in the computational bases: ``vec:\\vert j \\rangle_{B} \\langle i \\vert_{A} \\to \\langle i \\vert_{A}vec:\\vert j \\langle_{B}``.
 This is equivalent to stacking columns of the matrix on top of each other, which is the vec mapping for Julia.
 """
 function choitokraus(choi,dA,dB)
@@ -131,4 +128,30 @@ function innerproductf(X,Y,sigma,p,f,f0,fpinf)
         end
     end
     return tr(Xastp*Z)
+end
+
+"""
+    Jfpsigma(Y,sigmap,f,f0,fpinf)
+
+This function computes ``\\mathbf{J}_{f,\\sigma}^{p}(Y)``. It assumes that everything is 
+provided in the computational basis and returns it also in the computational basis.
+"""
+function Jfpsigma(Y,sigma,p,f,f0,fpinf)
+    size(Y) != size(sigma) ? throw(ArgumentError("Y and σ aren't the same dimensions")) : nothing
+    d = size(sigma)[1]
+    Yout = zeros(d,d)
+    λ,basis = eigen(sigma) 
+    for i = 1:d
+        for j = 1:d
+            t = perspective(λ[i],λ[j],f,f0,fpinf)
+            if p < 0 && t==0 #keeps track of the pseudoinverse aspect
+                Yout[i,j] = 0
+            else
+                Yout[i,j] = t^p *basis[:,i]'*Y*basis[:,j]
+            end
+        end
+    end
+    #Now we convert it back to the computational basis
+    B = diagm(collect(1:1:d)) #The scaling is to guarantee we keep the same ordering of the comp basis
+    return basischange(Yout,B)
 end
