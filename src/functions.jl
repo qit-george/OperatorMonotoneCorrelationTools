@@ -155,3 +155,36 @@ function Jfpsigma(Y,sigma,p,f,f0,fpinf)
     B = diagm(collect(1:1:d)) #The scaling is to guarantee we keep the same ordering of the comp basis
     return basischange(Yout,B)
 end
+
+"""
+    genGellMan(d)
+
+This function constructs and returns the generalized Gell Mann matrices.
+"""
+function genGellMann(d)
+    genGMmats = Matrix{Complex}[]
+    for n = 1:d
+        for m = 1:d
+            if n==d && m == d
+                nothing
+            elseif n == m && n != d
+                Gnn = zeros(d,d)
+                for i = 1:n
+                    Gnn[i,i] = 1
+                end
+                Gnn[n+1,n+1] = -n
+                Gnn = 1/sqrt(n*(n+1))*Gnn
+                push!(genGMmats,Gnn)
+            elseif n < m
+                Enm = zeros(d,d)
+                Enm[n,m] = 1
+                push!(genGMmats,1/sqrt(2)*(Enm + Enm'))
+            else
+                Enm = zeros(d,d)
+                Enm[n,m] = 1
+                push!(genGMmats,1im/sqrt(2)*(Enm - Enm'))
+            end
+        end
+    end
+    return genGMmats
+end
