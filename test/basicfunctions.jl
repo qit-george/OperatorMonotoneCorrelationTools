@@ -187,6 +187,21 @@ using OperatorMonotoneCorrelationTools
         end
     end
 
+    @testset "hsrandomstate" begin
+        #We take our test from Qetlab
+        #namely, purity of ρ drawn from μ_{nk} is
+        #given by (n+m)/(nm+1)
+        n = 3
+        m = 7
+        ct = 0
+        s = 100000
+        for j = 1:s
+            ρ = hsrandomstate(n, m)
+            ct = ct + real(tr(ρ' * ρ))
+        end
+        @test isapprox(ct / s, (n + m) / (n * m + 1), atol=1e-3) # average purity
+    end
+
     @testset "genGellMann" begin
         #First we check it returns the correct set on a qubit system
         d = 2

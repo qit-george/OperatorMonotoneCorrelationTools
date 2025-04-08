@@ -107,6 +107,21 @@ function Haarrandomunitary(d)
 end
 
 """
+    hsrandomstate(d::Int,k::Int=d)
+
+Draws a density matrix according to the ``\\mu_{nk}`` 
+distribution. The method of construction follows Lemma 1
+of "Asymptotics of random density matrices" by Ion Nechita
+"""
+function hsrandomstate(d::Int,k::Int=d)
+    #Construct Z that is made up of iid 𝒩_{ℂ}(0,1)
+    #which means Z[i,j] = X[i,j] +iY[i,j] where X,Y ∼ 𝒩(0,1/2)
+    #thus we need to rescale randn by 1/2
+    Z= sqrt(1/2)*randn(d,k) + sqrt(1/2)*1im*randn(d,k)
+    return( Z*Z'/tr(Z*Z'))
+end
+
+"""
     genGellMan(d)
 
 This function constructs and returns the generalized Gell Mann matrices.
