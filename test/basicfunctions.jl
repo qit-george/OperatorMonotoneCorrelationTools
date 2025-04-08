@@ -3,6 +3,64 @@ using OperatorMonotoneCorrelationTools
 
 @testset ".src/functions.jl" begin
 
+    @testset "partialtrace" begin
+        dA = 2
+        dB = 2
+        T = reshape(collect(1:1:(dA*dB)^2), (dA * dB, dA * dB))'
+        TA = partialtrace(T, dA, dB, 2)
+        TB = partialtrace(T, dA, dB, 1)
+        TAtrue = [7 11; 23 27]
+        TBtrue = [12 14; 20 22]
+        @test isapprox(TA,TAtrue,atol=1e-12)
+        @test isapprox(TB,TBtrue,atol=1e-12)
+
+        dA = 2
+        dB = 3
+        T = reshape(collect(1:1:(dA*dB)^2), (dA * dB, dA * dB))'
+        TA = partialtrace(T, dA, dB, 2)
+        TB = partialtrace(T, dA, dB, 1)
+        TAtrue = [24 33; 78 87]
+        TBtrue = [23 25 27; 35 37 39; 47 49 51]
+        @test isapprox(TA,TAtrue,atol=1e-12)
+        @test isapprox(TB,TBtrue,atol=1e-12)
+
+        dA = 3
+        dB = 2
+        T = reshape(collect(1:1:(dA*dB)^2), (dA * dB, dA * dB))'
+        TA = partialtrace(T, dA, dB, 2)
+        TB = partialtrace(T, dA, dB, 1)
+        TAtrue = [9 13 17; 33 37 41; 57 61 65]
+        TBtrue = [45 48; 63 66]
+        @test isapprox(TA,TAtrue,atol=1e-12)
+        @test isapprox(TB,TBtrue,atol=1e-12)
+    end
+
+    @testset "basischange" begin
+        #check it throws errors properly
+        A = [1 2 5; 3 4 6]
+        B = [1 2im; -2im 3]
+        @test_throws ArgumentError basischange(A, B)
+        A = [1 2; 3 4]
+        B = [1 2im; 2im 3]
+        @test_throws ArgumentError basischange(A, B)
+
+        #check it changes bases properly
+        #checking for Pauli bases
+        A = [1 0; 0 0]
+        B = [0 1; 1 0] #sigmaX
+        @test isapprox(basischange(A, B), 1 / 2 * [1 -1; -1 1], atol=1e-6)
+        A = [0 0; 0 1]
+        @test isapprox(basischange(A, B), 1 / 2 * [1 1; 1 1], atol=1e-6)
+        B = [0 -1im; 1im 0] #sigmaY
+        @test isapprox(basischange(A, B), 1 / 2 * [1 -1; -1 1], atol=1e-6)
+        A = [1 0; 0 0]
+        @test isapprox(basischange(A, B), 1 / 2 * [1 1; 1 1], atol=1e-6)
+
+        A = [1 2 3; 4 5 6; 7 8 9]
+        B = [0 1 0; 1 0 0; 0 0 0]
+        @test isapprox(basischange(A, B), [0 -3/sqrt(2) -3; -1/sqrt(2) 9 15/sqrt(2); -1 9/sqrt(2) 6], atol=1e-6)
+    end
+
     @testset "choitokraus" begin
         #There is some freedom in the Choi operators,
         #so instead we check the action of using the Choi operators
@@ -116,32 +174,6 @@ using OperatorMonotoneCorrelationTools
             X = reshape(collect(1:1:d^2), (d, d))
             @test isapprox(transpose(X), krausaction(Ak, Bk, X), atol=1e-6)
         end
-    end
-
-    @testset "basischange" begin
-        #check it throws errors properly
-        A = [1 2 5; 3 4 6]
-        B = [1 2im; -2im 3]
-        @test_throws ArgumentError basischange(A, B)
-        A = [1 2; 3 4]
-        B = [1 2im; 2im 3]
-        @test_throws ArgumentError basischange(A, B)
-
-        #check it changes bases properly
-        #checking for Pauli bases
-        A = [1 0; 0 0]
-        B = [0 1; 1 0] #sigmaX
-        @test isapprox(basischange(A, B), 1 / 2 * [1 -1; -1 1], atol=1e-6)
-        A = [0 0; 0 1]
-        @test isapprox(basischange(A, B), 1 / 2 * [1 1; 1 1], atol=1e-6)
-        B = [0 -1im; 1im 0] #sigmaY
-        @test isapprox(basischange(A, B), 1 / 2 * [1 -1; -1 1], atol=1e-6)
-        A = [1 0; 0 0]
-        @test isapprox(basischange(A, B), 1 / 2 * [1 1; 1 1], atol=1e-6)
-
-        A = [1 2 3; 4 5 6; 7 8 9]
-        B = [0 1 0; 1 0 0; 0 0 0]
-        @test isapprox(basischange(A, B), [0 -3/sqrt(2) -3; -1/sqrt(2) 9 15/sqrt(2); -1 9/sqrt(2) 6], atol=1e-6)
     end
 
     @testset "Haarrandomunitary" begin

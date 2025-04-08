@@ -1,4 +1,55 @@
 """
+    partialtrace(ρ,dA,dB,sys)
+
+This function computes the partial trace on a bipartite state ``\\rho_{AB}``.
+If sys = 1, it traces over the A system and otherwise the B system.
+"""
+function partialtrace(ρ,dA,dB,sys)
+    if sys == 1
+        #This uses that tracing over A sums the diagonal blocks
+        marg = zeros(Complex,dB,dB)
+        for i = 1:dA
+            marg = marg + ρ[(i-1)*dB+1:i*dB,(i-1)*dB+1:i*dB]
+        end
+    else
+        #This uses that tracing over B results in each entry being
+        #the trace of the corresponding subblock
+        marg = zeros(Complex,dA,dA)
+        for i in 1:dA
+            for j in 1:dA  
+                marg[i,j] = tr(ρ[(i-1)*dB+1:i*dB,(j-1)*dB+1:j*dB])
+            end
+        end
+    end
+    return marg
+    #TODO probably the right way to write this generally is to 
+    #permute the systems to trace over to act as A and
+    #the rest to act as B. Then just use that partial trace
+    #and permute the remaining systems back
+end
+
+"""
+    basischange(A,B)
+
+Expresses a square linear operator A in the eigenbasis of B where
+the eigenbasis is expressed with the k-th eigenvector corresponding to
+the k-th largest eigenvalue of sigma.
+"""
+function basischange(A,B)
+    !isapprox(B,B',atol=1e-6) ? throw(ArgumentError("B is not hermitian")) : nothing
+    size(A)[1] != size(A)[2] ? throw(ArgumentError("A is not square")) : nothing
+    d = size(B)[1]
+    basis = eigvecs(B)
+    Ap = zeros(Complex,d,d)
+    for i = 1:size(B)[1]
+        for j = 1:size(B)[2]
+            Ap[i,j] = basis[:,i]'*A*basis[:,j]
+        end
+    end
+    return Ap
+end
+
+"""
     choitokraus(choi,dA,dB)
 
 Converts a Choi operator of a linear map to its Kraus representation.
@@ -39,27 +90,6 @@ function krausaction(Ak,Bk,input)
     end
 
     return rhoout
-end
-
-"""
-    basischange(A,B)
-
-Expresses a square linear operator A in the eigenbasis of B where
-the eigenbasis is expressed with the k-th eigenvector corresponding to
-the k-th largest eigenvalue of sigma.
-"""
-function basischange(A,B)
-    !isapprox(B,B',atol=1e-6) ? throw(ArgumentError("B is not hermitian")) : nothing
-    size(A)[1] != size(A)[2] ? throw(ArgumentError("A is not square")) : nothing
-    d = size(B)[1]
-    basis = eigvecs(B)
-    Ap = zeros(Complex,d,d)
-    for i = 1:size(B)[1]
-        for j = 1:size(B)[2]
-            Ap[i,j] = basis[:,i]'*A*basis[:,j]
-        end
-    end
-    return Ap
 end
 
 """
