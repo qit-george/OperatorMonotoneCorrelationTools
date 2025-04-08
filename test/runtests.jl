@@ -10,8 +10,11 @@ println("running ./test/OperatorMonotoneCorrelationTools.jl")
 
     @testset "running ./test/runtests.jl" begin
 
-        println("testing ./src/functions.jl")
-        @time @safetestset ".test/functions.jl" begin include("functions.jl") end
+        println("testing ./src/basicfunctions.jl")
+        @time @safetestset ".test/basicfunctions.jl" begin include("basicfunctions.jl") end
+
+        println("testing ./src/joperatorfunctions.jl")
+        @time @safetestset ".test/joperatorfunctions.jl" begin include("joperatorfunctions.jl") end
 
     end
 end

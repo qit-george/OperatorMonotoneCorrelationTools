@@ -3,7 +3,11 @@ module OperatorMonotoneCorrelationTools
 # Write your package code here.
 using LinearAlgebra
 
-export choitokraus, krausaction, basischange, perspective, innerproductf, Jfpsigma
-include("functions.jl")
+export partialtrace, basischange, choitokraus, krausaction
+export  Haarrandomunitary, hsrandomstate, genGellMann
+include("basicfunctions.jl")
+
+export perspective, innerproductf, Jfpsigma, getONB
+include("joperatorfunctions.jl")
 
 end
