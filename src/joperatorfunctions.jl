@@ -90,3 +90,27 @@ function Jfpsigma(Y,sigma,p,f,f0,fpinf)
     B = diagm(collect(1:1:d)) #The scaling is to guarantee we keep the same ordering of the comp basis
     return basischange(Yout,B)
 end
+
+"""
+    getONB(σ,p,f,f0,fpinf)
+
+This function performs the (modified) Gram Schmidt process for the 
+inner product spaces ``\\langle X,Y \\rangle_{\\mathbf{J}_{f,\\sigma}^{p}}``
+considered in the paper.
+"""
+function getONB(σ,p,f,f0,fpinf)
+    #Generate initial ONB
+    d = size(σ)[1]
+    onb = genGellMann(d)
+    pushfirst!(onb, sqrt(σ))
+
+    #Apply modified Gram-Schmidt process
+    for i in eachindex(onb)
+        onb[i] = 1 / sqrt(innerproductf(onb[i], onb[i], σ, p, f, f0, fpinf)) * onb[i]
+        for j = i+1:length(onb)
+            onb[j] = onb[j] - innerproductf(onb[i], onb[j], σ, p, f, f0, fpinf) * onb[i]
+        end
+    end
+
+    return onb
+end

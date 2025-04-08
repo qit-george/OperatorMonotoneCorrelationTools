@@ -148,4 +148,139 @@ using OperatorMonotoneCorrelationTools
         end
     end
 
+    @testset "getONB" begin
+        #In the case σ=π (max mixed), an ONB just gets rescaled by d^(p/2)
+        #So we check this for two functions first
+        function f(x)
+            return x
+        end
+        f0 = 0
+        fpinf = 1
+        for d = 2:5
+            for p = -2:0.5:2
+                σ = 1 / d * Matrix(I, d, d)
+                onb = getONB(σ, p, f, f0, fpinf)
+
+                isnormal = true
+                isorthogonal = true
+                for i in eachindex(onb)
+                    for j in eachindex(onb)
+                        t = innerproductf(onb[i], onb[j], σ, p, f, f0, fpinf)
+                        if i == j
+                            isapprox(t, 1, atol=1e-6) ? nothing : isnormal = false
+                        else
+                            isapprox(t, 0, atol=1e-6) ? nothing : isorthogonal = false
+                        end
+                    end
+                end
+
+                d = size(σ)[1]
+                onbold = genGellMann(d)
+                pushfirst!(onbold, sqrt(σ))
+                #Check is what it should be analytically
+                iscorrect = true
+                for i in eachindex(onb)
+                    isapprox(onb[i], d^(p / 2) * onbold[i], atol=1e-6) ? nothing : iscorrect = false
+                end
+
+                @test isnormal && isorthogonal && iscorrect
+            end
+        end
+
+        #same thing but with different function
+        function f(x)
+            return (x + 1) / 2
+        end
+        f0 = 1 / 2
+        fpinf = 1 / 2
+        for d = 2:5
+            for p = -2:0.5:2
+                σ = 1 / d * Matrix(I, d, d)
+                onb = getONB(σ, p, f, f0, fpinf)
+
+                isnormal = true
+                isorthogonal = true
+                for i in eachindex(onb)
+                    for j in eachindex(onb)
+                        t = innerproductf(onb[i], onb[j], σ, p, f, f0, fpinf)
+                        if i == j
+                            isapprox(t, 1, atol=1e-6) ? nothing : isnormal = false
+                        else
+                            isapprox(t, 0, atol=1e-6) ? nothing : isorthogonal = false
+                        end
+                    end
+                end
+
+                d = size(σ)[1]
+                onbold = genGellMann(d)
+                pushfirst!(onbold, sqrt(σ))
+                #Check is what it should be analytically
+                iscorrect = true
+                for i in eachindex(onb)
+                    isapprox(onb[i], d^(p / 2) * onbold[i], atol=1e-6) ? nothing : iscorrect = false
+                end
+
+                @test isnormal && isorthogonal && iscorrect
+            end
+        end
+
+        #Now we do the same thing, but with random states, so we
+        #just check that it generates ONBs
+        function f(x)
+            return x
+        end
+        f0 = 0
+        fpinf = 1
+        for d = 2:5
+            for p = -2:1:2
+                σ = hsrandomstate(d)
+            
+                onb = getONB(σ, p, f, f0, fpinf)
+        
+                isnormal = true
+                isorthogonal = true
+                for i in eachindex(onb)
+                    for j in eachindex(onb)
+                        t = innerproductf(onb[i], onb[j], σ, p, f, f0, fpinf)
+                        if i == j
+                            isapprox(t, 1, atol=1e-6) ? nothing : isnormal = false
+                        else
+                            isapprox(t, 0, atol=1e-6) ? nothing : isorthogonal = false
+                        end
+                    end
+                end
+        
+                @test isnormal && isorthogonal
+            end
+        end
+        
+        #Same thing but with different function
+        function f(x)
+            return (x+1)/2
+        end
+        f0 = 1/2
+        fpinf = 1/2
+        for d = 2:5
+            for p = -2:1:2
+                σ = hsrandomstate(d)
+            
+                onb = getONB(σ, p, f, f0, fpinf)
+        
+                isnormal = true
+                isorthogonal = true
+                for i in eachindex(onb)
+                    for j in eachindex(onb)
+                        t = innerproductf(onb[i], onb[j], σ, p, f, f0, fpinf)
+                        if i == j
+                            isapprox(t, 1, atol=1e-6) ? nothing : isnormal = false
+                        else
+                            isapprox(t, 0, atol=1e-6) ? nothing : isorthogonal = false
+                        end
+                    end
+                end
+        
+                @test isnormal && isorthogonal
+            end
+        end
+    end
 end
