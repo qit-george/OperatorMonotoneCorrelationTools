@@ -124,6 +124,7 @@ using OperatorMonotoneCorrelationTools
             end
         end
 
+        #A non-uniform example
         for i = 1:2
             if i == 1
                 function f(x)
@@ -141,7 +142,17 @@ using OperatorMonotoneCorrelationTools
             for p = -2:1/2:2
                 σ = [1/2 -1/4; -1/4 1/2]
                 Y = [5 6; 7 4]
-                Ytrue = [11*perspective(1 / 4, 1 / 4, f, f0, fpinf)^p perspective(1 / 4, 3 / 4, f, f0, fpinf)^p; 0 -2*perspective(3 / 4, 3 / 4, f, f0, fpinf)^p]
+                #Ytrue = [11*perspective(1 / 4, 1 / 4, f, f0, fpinf)^p perspective(1 / 4, 3 / 4, f, f0, fpinf)^p; 0 -2*perspective(3 / 4, 3 / 4, f, f0, fpinf)^p]
+                a1 = perspective(1 / 4, 1 / 4, f, f0, fpinf)^p
+                a2 = perspective(1 / 4, 3 / 4, f, f0, fpinf)^p
+                a3 = perspective(3 / 4, 3 / 4, f, f0, fpinf)^p
+
+                e11 = 11 / 2 * a1 + a2 / 2 - a3
+                e12 = 11 / 2 * a1 - a2 / 2 + a3
+                e21 = 11 / 2 * a1 + a2 / 2 + a3
+                e22 = 11 / 2 * a1 - a2 / 2 - a3
+
+                Ytrue = [e11 e12; e21 e22]
                 Yout = Jfpsigma(Y, σ, p, f, f0, fpinf)
                 @test isapprox(Yout, Ytrue, atol=1e-10)
             end

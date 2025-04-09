@@ -61,6 +61,40 @@ using OperatorMonotoneCorrelationTools
         @test isapprox(basischange(A, B), [0 -3/sqrt(2) -3; -1/sqrt(2) 9 15/sqrt(2); -1 9/sqrt(2) 6], atol=1e-6)
     end
 
+    @testset "returntocompunitary" begin
+        recoverscompbasis = true
+        for d in [2, 5, 10, 20]
+            for run = 1:10
+                A = hsrandomstate(d) #initially expressed in comp basis
+                #Rewrites A in its eigenbasis
+                λ, basis = eigen(A)
+                Ap = zeros(d, d)
+                for i in 1:d
+                    Ap[i, i] = λ[i]
+                end
+                U = returntocompunitary(A)
+
+                Aback = U * Ap * U'
+
+                isapprox(A, Aback, atol=1e-10) ? nothing : recoverscompbasis = false
+            end
+        end
+        @test recoverscompbasis
+
+        recoverscompbasis = true
+        for d in [2, 5, 10, 20]
+            for run = 1:10
+                A = hsrandomstate(d) #initially expressed in comp basis
+                C = hsrandomstate(d) #expressed in comp basis
+                Cp = basischange(C, A) #expresses C in the basis of A
+                U = returntocompunitary(A)
+                Cback = U * Cp * U'
+                isapprox(C, Cback, atol=1e-10) ? nothing : recoverscompbasis = false
+            end
+        end
+        @test recoverscompbasis
+    end
+
     @testset "choitokraus" begin
         #There is some freedom in the Choi operators,
         #so instead we check the action of using the Choi operators
@@ -200,6 +234,23 @@ using OperatorMonotoneCorrelationTools
             ct = ct + real(tr(ρ' * ρ))
         end
         @test isapprox(ct / s, (n + m) / (n * m + 1), atol=1e-3) # average purity
+    end
+
+    @testset "gencompbasis" begin
+        d = 1
+        basis = gencompbasis(d)
+        @test isapprox(basis[1],[1],atol=1e-6)
+
+        d = 2
+        basis = gencompbasis(d)
+        @test isapprox(basis[1],[1;0],atol=1e-6)
+        @test isapprox(basis[2],[0;1],atol=1e-6)
+
+        d = 3
+        basis = gencompbasis(d)
+        @test isapprox(basis[1],[1;0;0],atol=1e-6)
+        @test isapprox(basis[2],[0;1;0];0,atol=1e-6)
+        @test isapprox(basis[3],[0;0;1];0,atol=1e-6)
     end
 
     @testset "genGellMann" begin

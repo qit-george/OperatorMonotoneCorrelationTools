@@ -66,16 +66,26 @@ function innerproductf(X,Y,sigma,p,f,f0,fpinf)
 end
 
 """
-    Jfpsigma(Y,sigmap,f,f0,fpinf)
+    Jfpsigma(Y,sigma,p,f,f0,fpinf)
 
-This function computes ``\\mathbf{J}_{f,\\sigma}^{p}(Y)``. It assumes that everything is 
-provided in the computational basis and returns it also in the computational basis.
+This function computes ``\\mathbf{J}_{f,\\sigma}^{p}(Y)``. Warning: this returns in the basis of σ
+as ordered by the eigenvalues increasing.
 """
-function Jfpsigma(Y,sigma,p,f,f0,fpinf)
-    size(Y) != size(sigma) ? throw(ArgumentError("Y and σ aren't the same dimensions")) : nothing
-    d = size(sigma)[1]
+function Jfpsigma(Y,σ,p,f,f0,fpinf)
+    size(Y) != size(σ) ? throw(ArgumentError("Y and σ aren't the same dimensions")) : nothing
+    d = size(σ)[1]
     Yout = zeros(Complex,d,d)
-    λ,basis = eigen(sigma) 
+    λ,basis = eigen(σ)
+
+    # There can be numerical error resulting in imaginary parts in eigenvalues
+    # The following controls when you want to be warned about this and/or stop for accuracy reasons
+    imt = sum(imag.(λ))
+    1e-14 < imt <= 1e-10 ?  @warn("sum of imaginary parts of eigenvalues between 1e-14 and 1e-10") : nothing
+    imt >= 1e-10 ? throw(ErrorException("Total imaginary part of eigenvalues is over 1e-10")) : nothing
+    λ = real.(λ)
+    abs(1-sum(λ)) > 1e-6 ? throw(ErrorException("Corrected eigenvalues too unnormalized")) : nothing
+
+    #This computes it in the basis of σ
     for i = 1:d
         for j = 1:d
             t = perspective(λ[i],λ[j],f,f0,fpinf)
@@ -87,8 +97,9 @@ function Jfpsigma(Y,sigma,p,f,f0,fpinf)
         end
     end
     #Now we convert it back to the computational basis
-    B = diagm(collect(1:1:d)) #The scaling is to guarantee we keep the same ordering of the comp basis
-    return basischange(Yout,B)
+    U = returntocompunitary(σ)
+    #B = diagm(collect(1:1:d)) #The scaling is to guarantee we keep the same ordering of the comp basis
+    return U*Yout*U' #basischange(Yout,B)
 end
 
 """
@@ -96,7 +107,10 @@ end
 
 This function performs the (modified) Gram Schmidt process for the 
 inner product spaces ``\\langle X,Y \\rangle_{\\mathbf{J}_{f,\\sigma}^{p}}``
-considered in the paper.
+considered in the paper. 
+
+Note inputs need to be in computational basis and are returned in computational basis 
+as the inner product value is a number and thus does not change the basis here.
 """
 function getONB(σ,p,f,f0,fpinf)
     #Generate initial ONB

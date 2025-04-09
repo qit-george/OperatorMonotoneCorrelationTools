@@ -33,7 +33,7 @@ end
 
 Expresses a square linear operator A in the eigenbasis of B where
 the eigenbasis is expressed with the k-th eigenvector corresponding to
-the k-th largest eigenvalue of sigma.
+the k-th largest eigenvalue of B.
 """
 function basischange(A,B)
     !isapprox(B,B',atol=1e-6) ? throw(ArgumentError("B is not hermitian")) : nothing
@@ -47,6 +47,27 @@ function basischange(A,B)
         end
     end
     return Ap
+end
+
+"""
+    returntocompunitary(A)
+
+Given A in the computational basis, this returns the unitary U
+such that it takes the eigenbasis of A to the computational basis.
+This is for taking matrices written in the eigenbasis of A back to
+the computational basis.
+"""
+function returntocompunitary(A)
+    d = size(A)[1]
+    λ1, initbasis = eigen(A)
+    finalbasis = gencompbasis(d)
+    U = zeros(Complex, d, d)
+    for j = 1:d
+        for i = 1:d
+            U[i, j] = finalbasis[i]'*initbasis[:,j]
+        end
+    end
+    return U
 end
 
 """
@@ -152,4 +173,20 @@ function genGellMann(d)
         end
     end
     return genGMmats
+end
+
+"""
+    gencompbasis(d)
+
+This function returns the computational basis of dimension d.
+"""
+function gencompbasis(d)
+    basis = Vector{Any}[]
+    init = zeros(d)
+    for i = 1:d
+        init[i] = 1
+        push!(basis,init)
+        init[i] = 0
+    end
+    return basis
 end
