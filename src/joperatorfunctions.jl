@@ -128,3 +128,17 @@ function getONB(σ,p,f,f0,fpinf)
 
     return onb
 end
+
+"""
+   SchReversalMap(X,Ak,Bk,σ,f,f0,fpinf)
+   
+Applies the Schrodinger reversal map to X according to f,ℰ,σ. 
+ℰ is presumed to be provided in its Kraus operator form.
+It is assumed X, Ak, Bk, and σ are all written in the computational basis.
+"""
+function SchReversalMap(X,Ak,Bk,σ,f,f0,fpinf)
+    σout = krausaction(Ak,Bk,σ)
+    step1 = Jfpsigma(X,σout,-1,f,f0,fpinf) 
+    step2 = krausaction(Ak', Bk', step1) #Apply adjoint map
+    return Jfpsigma(step2,σ,1,f,f0,fpinf)
+end

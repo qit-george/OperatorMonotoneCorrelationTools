@@ -294,4 +294,78 @@ using OperatorMonotoneCorrelationTools
             end
         end
     end
+
+    @testset "SchReversalMap" begin
+        #As we know the Schrodinger reversal map 𝒮_{f,ℰ,σ}(ℰ(σ)) = σ,
+        #we verify the function does that on random quantum states
+        
+        function f(x)
+            return x
+        end
+        f0 = 0
+        fpinf = 1
+        returnsstate = true
+        for q = 0:0.01:1
+            idMat = [1 0; 0 1]
+            sigmaX = [0 1; 1 0]
+            sigmaY = [0 -1im; 1im 0]
+            sigmaZ = [1 0; 0 -1]
+            Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
+            Bk = Ak
+            for run = 1:10
+                σ = hsrandomstate(2)
+                σout = krausaction(Ak, Bk, σ)
+
+                step3 = SchReversalMap(σout, Ak, Bk, σ, f, f0, fpinf)
+                norm(step3 - σ) < 1e-14 ? nothing : returnsstate = false
+            end
+        end
+        @test returnsstate
+        
+        function f(x)
+            return sqrt(x)
+        end
+        f0 = 0
+        fpinf = 0
+        returnsstate = true
+        for q = 0:0.01:1
+            idMat = [1 0; 0 1]
+            sigmaX = [0 1; 1 0]
+            sigmaY = [0 -1im; 1im 0]
+            sigmaZ = [1 0; 0 -1]
+            Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
+            Bk = Ak
+            for run = 1:10
+                σ = hsrandomstate(2)
+                σout = krausaction(Ak, Bk, σ)
+
+                step3 = SchReversalMap(σout, Ak, Bk, σ, f, f0, fpinf)
+                norm(step3 - σ) < 1e-14 ? nothing : returnsstate = false
+            end
+        end
+        @test returnsstate
+
+        function f(x)
+            return (x+1)/2
+        end
+        f0 = 1/2
+        fpinf = 1/2
+        returnsstate = true
+        for q = 0:0.01:1
+            idMat = [1 0; 0 1]
+            sigmaX = [0 1; 1 0]
+            sigmaY = [0 -1im; 1im 0]
+            sigmaZ = [1 0; 0 -1]
+            Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
+            Bk = Ak
+            for run = 1:10
+                σ = hsrandomstate(2)
+                σout = krausaction(Ak, Bk, σ)
+
+                step3 = SchReversalMap(σout, Ak, Bk, σ, f, f0, fpinf)
+                norm(step3 - σ) < 1e-14 ? nothing : returnsstate = false
+            end
+        end
+        @test returnsstate
+    end
 end
