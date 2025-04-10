@@ -142,3 +142,30 @@ function SchReversalMap(X,Ak,Bk,σ,f,f0,fpinf)
     step2 = krausaction(Ak', Bk', step1) #Apply adjoint map
     return Jfpsigma(step2,σ,1,f,f0,fpinf)
 end
+
+"""
+    getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
+
+This returns the contraction coefficient ``\\eta_{\\chi^{2}_{f}(\\mathcal{E},\\sigma)`` 
+for a full rank input state σ and symmetric-inducing operator monotone function f.
+"""
+function getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
+    d = size(σ)[1]
+    rank(σ) != d ? throw(ArgumentError("σ must be full rank")) : nothing
+
+    onb = getONB(σ, -1, f, f0, fpinf)
+
+    T = zeros(Complex, d^2, d^2)
+    for j = 1:d^2
+        for i = 1:d^2
+            #Action of 𝒮_{f,ℰ,σ}∘ℰ on e_{j}
+            ejout = krausaction(Ak, Bk, onb[j])
+            ejout = SchReversalMap(ejout, Ak, Bk, σ, f, f0, fpinf)
+            T[i, j] = innerproductf(onb[i], ejout, σ, -1, f, f0, fpinf)
+        end
+    end
+
+    #return T
+    λ = eigvals(T)
+    return λ[d^2-1] #Eigvals returns the eigenvalues in increasing order
+end

@@ -10,7 +10,7 @@ export genGellMann, gencompbasis
 include("basicfunctions.jl")
 
 export perspective, innerproductf, Jfpsigma, getONB
-export SchReversalMap
+export SchReversalMap, getcontractioncoeff
 include("joperatorfunctions.jl")
 
 end

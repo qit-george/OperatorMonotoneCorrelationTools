@@ -368,4 +368,58 @@ using OperatorMonotoneCorrelationTools
         end
         @test returnsstate
     end
+
+    @testset "getcontractioncoeff" begin
+        #In "Quantum Rényi and f-divergences from integral representations" by 
+        #Hirche and Tomamichel it is shown that for a generalized depolarizing channel
+        #the input-dependent contraction coefficient for f = f_{LM} is (1-q)^2. 
+        #Here we verify our function achieves this
+
+        function f(x)
+            if x != 1 && x > 0
+                return (x - 1) / log(x)
+            elseif x == 1
+                return 1
+            else
+                throw(ArgumentError("x cannot be negative"))
+            end
+        end
+        f0 = 0
+        fpinf = 0
+
+        #Testing qubit depolarizing channel
+        maxdif = 0
+        σ = [1/2 0; 0 1/2]
+        worksfordepol = true
+        for q = 0:0.05:1
+            idMat = [1 0; 0 1]
+            sigmaX = [0 1; 1 0]
+            sigmaY = [0 -1im; 1im 0]
+            sigmaZ = [1 0; 0 -1]
+            Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
+            Bk = Ak
+            calc = getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
+            calctrue = (1 - q)^2
+            isapprox(calc, calctrue, atol=1e-12) ? nothing : worksfordepol = false
+        end
+        @test worksfordepol
+
+        #testing qutrit generalized depolarizing channel with random state
+        d = 3
+        worksfordepol = true
+        for q = 0:0.05:1
+            for run = 1:4
+                σ = hsrandomstate(d)
+                Φv = vec(Matrix(1I, d, d))
+                Φ = Φv * Φv'
+                choimat = (1 - q)Φ + q * kron(Matrix(1I, d, d), σ)
+                Ak, Bk = choitokraus(choimat, d, d)
+                calc = getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
+                calctrue = (1 - q)^2
+                val = abs(calc - calctrue)
+                isapprox(calc, calctrue, atol=1e-10) ? nothing : worksfordepol = false
+            end
+        end
+        @test worksfordepol
+    end
 end
