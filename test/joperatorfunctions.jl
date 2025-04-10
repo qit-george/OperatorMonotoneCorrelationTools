@@ -422,4 +422,50 @@ using OperatorMonotoneCorrelationTools
         end
         @test worksfordepol
     end
+
+    @testset "Jfpsigmachoi" begin
+        function f(x)
+            if x != 1 && x > 0
+                return (x - 1) / log(x)
+            elseif x == 1
+                return 1
+            else
+                throw(ArgumentError("x cannot be negative"))
+            end
+        end
+        f0 = 0
+        fpinf = 0
+        
+        functionworks = true
+        for p in -2:0.5:2
+            for d in 2:1:5
+                σ = 1 / d * Matrix(1I, d, d)
+                choiout = Jfpsigmachoi(σ, p, f, f0, fpinf)
+                Φv = vec(Matrix(1I, d, d))
+                Φ = Φv * Φv'
+                choitrue = (1 / d)^p * Φ
+                isapprox(choiout, choitrue, atol=1e-12) ? nothing : functionworks = false
+            end
+        end
+        @test functionworks
+
+        function f(x)
+            return sqrt(x)
+        end
+        f0 = 0
+        fpinf = 0
+        
+        functionworks = true
+        for p in -2:0.5:2
+            for d in 2:1:5
+                σ = 1 / d * Matrix(1I, d, d)
+                choiout = Jfpsigmachoi(σ, p, f, f0, fpinf)
+                Φv = vec(Matrix(1I, d, d))
+                Φ = Φv * Φv'
+                choitrue = (1 / d)^p * Φ
+                isapprox(choiout, choitrue, atol=1e-12) ? nothing : functionworks = false
+            end
+        end
+        @test functionworks
+    end
 end

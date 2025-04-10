@@ -169,3 +169,23 @@ function getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
     λ = eigvals(T)
     return λ[d^2-1] #Eigvals returns the eigenvalues in increasing order
 end
+
+"""
+    Jfpsigmachoi(σ,p,f,f0,fpinf)
+
+This function returns the Choi operator of ``\\mathbf{J}_{f,\\sigma}^{p}.``
+We note this has a specific function for obtaining the Choi operator
+to force the user to consider p,f,f0,fpinf.
+"""
+function Jfpsigmachoi(σ,p,f,f0,fpinf)
+    d = size(σ)[1]
+    choimat = zeros(d^2,d^2)
+    for i = 1:d
+        for j = 1:d
+            elmat = zeros(d,d)
+            elmat[i,j] = 1
+            choimat = choimat + kron(elmat,Jfpsigma(elmat,σ,p,f,f0,fpinf))
+        end
+    end
+    return choimat
+end
