@@ -66,16 +66,26 @@ function innerproductf(X,Y,sigma,p,f,f0,fpinf)
 end
 
 """
-    Jfpsigma(Y,sigmap,f,f0,fpinf)
+    Jfpsigma(Y,sigma,p,f,f0,fpinf)
 
-This function computes ``\\mathbf{J}_{f,\\sigma}^{p}(Y)``. It assumes that everything is 
-provided in the computational basis and returns it also in the computational basis.
+This function computes ``\\mathbf{J}_{f,\\sigma}^{p}(Y)``. Warning: this returns in the basis of σ
+as ordered by the eigenvalues increasing.
 """
-function Jfpsigma(Y,sigma,p,f,f0,fpinf)
-    size(Y) != size(sigma) ? throw(ArgumentError("Y and σ aren't the same dimensions")) : nothing
-    d = size(sigma)[1]
+function Jfpsigma(Y,σ,p,f,f0,fpinf)
+    size(Y) != size(σ) ? throw(ArgumentError("Y and σ aren't the same dimensions")) : nothing
+    d = size(σ)[1]
     Yout = zeros(Complex,d,d)
-    λ,basis = eigen(sigma) 
+    λ,basis = eigen(σ)
+
+    # There can be numerical error resulting in imaginary parts in eigenvalues
+    # The following controls when you want to be warned about this and/or stop for accuracy reasons
+    imt = sum(imag.(λ))
+    1e-14 < imt <= 1e-10 ?  @warn("sum of imaginary parts of eigenvalues between 1e-14 and 1e-10") : nothing
+    imt >= 1e-10 ? throw(ErrorException("Total imaginary part of eigenvalues is over 1e-10")) : nothing
+    λ = real.(λ)
+    abs(1-sum(λ)) > 1e-6 ? throw(ErrorException("Corrected eigenvalues too unnormalized")) : nothing
+
+    #This computes it in the basis of σ
     for i = 1:d
         for j = 1:d
             t = perspective(λ[i],λ[j],f,f0,fpinf)
@@ -87,8 +97,9 @@ function Jfpsigma(Y,sigma,p,f,f0,fpinf)
         end
     end
     #Now we convert it back to the computational basis
-    B = diagm(collect(1:1:d)) #The scaling is to guarantee we keep the same ordering of the comp basis
-    return basischange(Yout,B)
+    U = returntocompunitary(σ)
+    #B = diagm(collect(1:1:d)) #The scaling is to guarantee we keep the same ordering of the comp basis
+    return U*Yout*U' #basischange(Yout,B)
 end
 
 """
@@ -96,7 +107,10 @@ end
 
 This function performs the (modified) Gram Schmidt process for the 
 inner product spaces ``\\langle X,Y \\rangle_{\\mathbf{J}_{f,\\sigma}^{p}}``
-considered in the paper.
+considered in the paper. 
+
+Note inputs need to be in computational basis and are returned in computational basis 
+as the inner product value is a number and thus does not change the basis here.
 """
 function getONB(σ,p,f,f0,fpinf)
     #Generate initial ONB
@@ -113,4 +127,45 @@ function getONB(σ,p,f,f0,fpinf)
     end
 
     return onb
+end
+
+"""
+   SchReversalMap(X,Ak,Bk,σ,f,f0,fpinf)
+   
+Applies the Schrodinger reversal map to X according to f,ℰ,σ. 
+ℰ is presumed to be provided in its Kraus operator form.
+It is assumed X, Ak, Bk, and σ are all written in the computational basis.
+"""
+function SchReversalMap(X,Ak,Bk,σ,f,f0,fpinf)
+    σout = krausaction(Ak,Bk,σ)
+    step1 = Jfpsigma(X,σout,-1,f,f0,fpinf) 
+    step2 = krausaction(Ak', Bk', step1) #Apply adjoint map
+    return Jfpsigma(step2,σ,1,f,f0,fpinf)
+end
+
+"""
+    getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
+
+This returns the contraction coefficient ``\\eta_{\\chi^{2}_{f}(\\mathcal{E},\\sigma)`` 
+for a full rank input state σ and symmetric-inducing operator monotone function f.
+"""
+function getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
+    d = size(σ)[1]
+    rank(σ) != d ? throw(ArgumentError("σ must be full rank")) : nothing
+
+    onb = getONB(σ, -1, f, f0, fpinf)
+
+    T = zeros(Complex, d^2, d^2)
+    for j = 1:d^2
+        for i = 1:d^2
+            #Action of 𝒮_{f,ℰ,σ}∘ℰ on e_{j}
+            ejout = krausaction(Ak, Bk, onb[j])
+            ejout = SchReversalMap(ejout, Ak, Bk, σ, f, f0, fpinf)
+            T[i, j] = innerproductf(onb[i], ejout, σ, -1, f, f0, fpinf)
+        end
+    end
+
+    #return T
+    λ = eigvals(T)
+    return λ[d^2-1] #Eigvals returns the eigenvalues in increasing order
 end

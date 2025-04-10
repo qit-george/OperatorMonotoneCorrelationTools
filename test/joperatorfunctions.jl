@@ -124,6 +124,7 @@ using OperatorMonotoneCorrelationTools
             end
         end
 
+        #A non-uniform example
         for i = 1:2
             if i == 1
                 function f(x)
@@ -141,7 +142,17 @@ using OperatorMonotoneCorrelationTools
             for p = -2:1/2:2
                 σ = [1/2 -1/4; -1/4 1/2]
                 Y = [5 6; 7 4]
-                Ytrue = [11*perspective(1 / 4, 1 / 4, f, f0, fpinf)^p perspective(1 / 4, 3 / 4, f, f0, fpinf)^p; 0 -2*perspective(3 / 4, 3 / 4, f, f0, fpinf)^p]
+                #Ytrue = [11*perspective(1 / 4, 1 / 4, f, f0, fpinf)^p perspective(1 / 4, 3 / 4, f, f0, fpinf)^p; 0 -2*perspective(3 / 4, 3 / 4, f, f0, fpinf)^p]
+                a1 = perspective(1 / 4, 1 / 4, f, f0, fpinf)^p
+                a2 = perspective(1 / 4, 3 / 4, f, f0, fpinf)^p
+                a3 = perspective(3 / 4, 3 / 4, f, f0, fpinf)^p
+
+                e11 = 11 / 2 * a1 + a2 / 2 - a3
+                e12 = 11 / 2 * a1 - a2 / 2 + a3
+                e21 = 11 / 2 * a1 + a2 / 2 + a3
+                e22 = 11 / 2 * a1 - a2 / 2 - a3
+
+                Ytrue = [e11 e12; e21 e22]
                 Yout = Jfpsigma(Y, σ, p, f, f0, fpinf)
                 @test isapprox(Yout, Ytrue, atol=1e-10)
             end
@@ -282,5 +293,133 @@ using OperatorMonotoneCorrelationTools
                 @test isnormal && isorthogonal
             end
         end
+    end
+
+    @testset "SchReversalMap" begin
+        #As we know the Schrodinger reversal map 𝒮_{f,ℰ,σ}(ℰ(σ)) = σ,
+        #we verify the function does that on random quantum states
+        
+        function f(x)
+            return x
+        end
+        f0 = 0
+        fpinf = 1
+        returnsstate = true
+        for q = 0:0.01:1
+            idMat = [1 0; 0 1]
+            sigmaX = [0 1; 1 0]
+            sigmaY = [0 -1im; 1im 0]
+            sigmaZ = [1 0; 0 -1]
+            Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
+            Bk = Ak
+            for run = 1:10
+                σ = hsrandomstate(2)
+                σout = krausaction(Ak, Bk, σ)
+
+                step3 = SchReversalMap(σout, Ak, Bk, σ, f, f0, fpinf)
+                norm(step3 - σ) < 1e-14 ? nothing : returnsstate = false
+            end
+        end
+        @test returnsstate
+        
+        function f(x)
+            return sqrt(x)
+        end
+        f0 = 0
+        fpinf = 0
+        returnsstate = true
+        for q = 0:0.01:1
+            idMat = [1 0; 0 1]
+            sigmaX = [0 1; 1 0]
+            sigmaY = [0 -1im; 1im 0]
+            sigmaZ = [1 0; 0 -1]
+            Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
+            Bk = Ak
+            for run = 1:10
+                σ = hsrandomstate(2)
+                σout = krausaction(Ak, Bk, σ)
+
+                step3 = SchReversalMap(σout, Ak, Bk, σ, f, f0, fpinf)
+                norm(step3 - σ) < 1e-14 ? nothing : returnsstate = false
+            end
+        end
+        @test returnsstate
+
+        function f(x)
+            return (x+1)/2
+        end
+        f0 = 1/2
+        fpinf = 1/2
+        returnsstate = true
+        for q = 0:0.01:1
+            idMat = [1 0; 0 1]
+            sigmaX = [0 1; 1 0]
+            sigmaY = [0 -1im; 1im 0]
+            sigmaZ = [1 0; 0 -1]
+            Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
+            Bk = Ak
+            for run = 1:10
+                σ = hsrandomstate(2)
+                σout = krausaction(Ak, Bk, σ)
+
+                step3 = SchReversalMap(σout, Ak, Bk, σ, f, f0, fpinf)
+                norm(step3 - σ) < 1e-14 ? nothing : returnsstate = false
+            end
+        end
+        @test returnsstate
+    end
+
+    @testset "getcontractioncoeff" begin
+        #In "Quantum Rényi and f-divergences from integral representations" by 
+        #Hirche and Tomamichel it is shown that for a generalized depolarizing channel
+        #the input-dependent contraction coefficient for f = f_{LM} is (1-q)^2. 
+        #Here we verify our function achieves this
+
+        function f(x)
+            if x != 1 && x > 0
+                return (x - 1) / log(x)
+            elseif x == 1
+                return 1
+            else
+                throw(ArgumentError("x cannot be negative"))
+            end
+        end
+        f0 = 0
+        fpinf = 0
+
+        #Testing qubit depolarizing channel
+        maxdif = 0
+        σ = [1/2 0; 0 1/2]
+        worksfordepol = true
+        for q = 0:0.05:1
+            idMat = [1 0; 0 1]
+            sigmaX = [0 1; 1 0]
+            sigmaY = [0 -1im; 1im 0]
+            sigmaZ = [1 0; 0 -1]
+            Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
+            Bk = Ak
+            calc = getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
+            calctrue = (1 - q)^2
+            isapprox(calc, calctrue, atol=1e-12) ? nothing : worksfordepol = false
+        end
+        @test worksfordepol
+
+        #testing qutrit generalized depolarizing channel with random state
+        d = 3
+        worksfordepol = true
+        for q = 0:0.05:1
+            for run = 1:4
+                σ = hsrandomstate(d)
+                Φv = vec(Matrix(1I, d, d))
+                Φ = Φv * Φv'
+                choimat = (1 - q)Φ + q * kron(Matrix(1I, d, d), σ)
+                Ak, Bk = choitokraus(choimat, d, d)
+                calc = getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
+                calctrue = (1 - q)^2
+                val = abs(calc - calctrue)
+                isapprox(calc, calctrue, atol=1e-10) ? nothing : worksfordepol = false
+            end
+        end
+        @test worksfordepol
     end
 end
