@@ -68,8 +68,8 @@ end
 """
     Jfpsigma(Y,sigma,p,f,f0,fpinf)
 
-This function computes ``\\mathbf{J}_{f,\\sigma}^{p}(Y)``. Warning: this returns in the basis of σ
-as ordered by the eigenvalues increasing.
+This function computes ``\\mathbf{J}_{f,\\sigma}^{p}(Y)``. It expects the input in the 
+computational basis and returns the matrix in the computational basis.
 """
 function Jfpsigma(Y,σ,p,f,f0,fpinf)
     size(Y) != size(σ) ? throw(ArgumentError("Y and σ aren't the same dimensions")) : nothing
@@ -157,10 +157,10 @@ function getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
 
     T = zeros(Complex, d^2, d^2)
     for j = 1:d^2
+        #Action of 𝒮_{f,ℰ,σ}∘ℰ on e_{j}
+        ejout = krausaction(Ak, Bk, onb[j])
+        ejout = SchReversalMap(ejout, Ak, Bk, σ, f, f0, fpinf)
         for i = 1:d^2
-            #Action of 𝒮_{f,ℰ,σ}∘ℰ on e_{j}
-            ejout = krausaction(Ak, Bk, onb[j])
-            ejout = SchReversalMap(ejout, Ak, Bk, σ, f, f0, fpinf)
             T[i, j] = innerproductf(onb[i], ejout, σ, -1, f, f0, fpinf)
         end
     end
@@ -188,4 +188,82 @@ function Jfpsigmachoi(σ,p,f,f0,fpinf)
         end
     end
     return choimat
+end
+
+
+"""
+    qmaxcorrcoeff(ρA::Matrix, Ak::Vector, Bk::Vector, f, f0, fpinf)
+
+This function computes the maximal correlation coefficient ``\\mu_{f}(\\rho_{AB})``
+when given ``\\rho_{A}`` and the kraus operators of ``\\mathcal{E}`` such that 
+``\\rho_{AB} = (\\text{id}_{A} \\otimes \\mathcal{E})(\\psi_{\\rho_{A}})`` where
+``\\psi_{\\rho_{A}}`` is the canonical purification of ``\\rho_{A}``.
+"""
+function qmaxcorrcoeff(ρA::Matrix, Ak::Vector, Bk::Vector, f, f0, fpinf)
+    #preliminary calculations
+    dA = size(ρA)[1]
+    ρAsq = sqrt(ρA)
+    ρB = krausaction(Ak, Bk, ρA)
+    dB = size(ρB)[1]
+
+    #Kraus of Jf maps
+    ΩJfρAneghalf = Jfpsigmachoi(ρA, -1 / 2, f, f0, fpinf)
+    C, D = choitokraus(ΩJfρAneghalf, dA, dA)
+    ΩJfρBneghalf = Jfpsigmachoi(ρB, -1 / 2, f, f0, fpinf)
+    E, F = choitokraus(ΩJfρBneghalf, dB, dB)
+
+    #Kraus of Λ_{ ̃ρ_f}* ∘ Λ_{ ̃ρ_f}
+    Mw = Matrix{Any}[]
+    Rw = Matrix{Any}[]
+    for x1 in eachindex(Ak)
+        for x2 in eachindex(Ak)
+            for y1 in eachindex(C)
+                for y2 in eachindex(C)
+                    for z1 in eachindex(E)
+                        for z2 in eachindex(E)
+                            push!(Mw, conj.(C[y2]) * ρAsq * Ak[x2]' * E[z2]' * E[z1] * Ak[x1] * ρAsq * transpose(C[y1]))
+                            push!(Rw, F[z2]' * Bk[x2]' * ρAsq * conj.(D[y2]) * transpose(D[y1]) * ρAsq * Bk[x1] * F[z1])
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    #Get basis of Herm(A) with respect to HS
+    d = size(ρA)[1]
+    onb = genGellMann(d)
+    pushfirst!(onb, ρAsq)
+
+    #Get standard matrix T
+    T = zeros(Complex, d^2, d^2)
+
+    for j in 1:d^2
+        #Action of Λ_{ ̃ρ_f}* ∘ Λ_{ ̃ρ_f} on ONB
+        ejout = krausaction(Mw, Rw, onb[j])
+        for i in 1:d^2
+            T[i, j] = tr(onb[i]' * ejout)
+        end
+    end
+
+    #Get the eigenvalues
+    λ = eigvals(T)
+
+    # There can be numerical error resulting in imaginary parts in eigenvalues
+    # The following controls when you want to be warned about this and/or stop for accuracy reasons
+    imt = sum(imag.(λ))
+    1e-14 < imt <= 1e-10 ? @warn("sum of imaginary parts of eigenvalues between 1e-14 and 1e-10") : nothing
+    imt >= 1e-10 ? throw(ErrorException("Total imaginary part of eigenvalues is over 1e-10")) : nothing
+    λ = real.(λ)
+
+    val = sqrt(λ[d^2-1])
+
+    #There can be numerical error, so we process this a little bit if it exceeds unity
+    val > 1 + 1e-8 ? throw(ErrorException("The value is greater than 1+1e-8, so the numerical error is bad")) : nothing
+    if 1 + 1e-8 > val > 1
+        @warn("the value is slightly above unity, there is some numerical error")
+        val = 1
+    end
+
+    return val
 end

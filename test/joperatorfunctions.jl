@@ -468,4 +468,71 @@ using OperatorMonotoneCorrelationTools
         end
         @test functionworks
     end
+
+    @testset "qmaxcorrcoeff" begin
+        #By Proposition 18, the isotropic states ρ_{d,λ} have maximal correlation coefficient 
+        #of λ. ρ_{d,λ} = Ω_{𝒟_{1-λ}} where 𝒟_{q} denotes the depolarizing channel. So we use
+        #this to check the function works.
+        d = 2 
+        
+        function f(x)
+            if x != 1 && x > 0
+                return (x - 1) / log(x)
+            elseif x == 1
+                return 1
+            else
+                throw(ArgumentError("x cannot be negative"))
+            end
+        end
+        f0 = 0
+        fpinf = 0
+
+        functionworks = true
+        for q = 1:0.05:1
+
+            #Max mixed state 
+            ρA = 1 / d * Matrix(1I, d, d)
+
+            #Construct depolarizing channel kraus
+            idMat = [1 0; 0 1]
+            sigmaX = [0 1; 1 0]
+            sigmaY = [0 -1im; 1im 0]
+            sigmaZ = [1 0; 0 -1]
+            Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
+            Bk = Ak
+
+            valout = qmaxcorrcoeff(ρA, Ak, Bk, f, f0, fpinf)
+            valtrue = (1 - q)
+
+            abs(valout - valtrue) < 1e-8 ? nothing : functionworks = false
+        end
+        @test functionworks
+
+        function f(x)
+            return sqrt(x)
+        end
+        f0 = 0
+        fpinf = 0
+
+        functionworks = true
+        for q = 1:0.05:1
+
+            #Max mixed state 
+            ρA = 1 / d * Matrix(1I, d, d)
+
+            #Construct depolarizing channel kraus
+            idMat = [1 0; 0 1]
+            sigmaX = [0 1; 1 0]
+            sigmaY = [0 -1im; 1im 0]
+            sigmaZ = [1 0; 0 -1]
+            Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
+            Bk = Ak
+
+            valout = qmaxcorrcoeff(ρA, Ak, Bk, f, f0, fpinf)
+            valtrue = (1 - q)
+
+            abs(valout - valtrue) < 1e-8 ? nothing : functionworks = false
+        end
+        @test functionworks
+    end
 end
