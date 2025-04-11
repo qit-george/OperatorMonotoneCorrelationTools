@@ -231,17 +231,16 @@ function qmaxcorrcoeff(ρA::Matrix, Ak::Vector, Bk::Vector, f, f0, fpinf)
     end
 
     #Get basis of Herm(A) with respect to HS
-    d = size(ρA)[1]
-    onb = genGellMann(d)
+    onb = genGellMann(dA)
     pushfirst!(onb, ρAsq)
 
     #Get standard matrix T
-    T = zeros(Complex, d^2, d^2)
+    T = zeros(Complex, dA^2, dA^2)
 
-    for j in 1:d^2
+    for j in 1:dA^2
         #Action of Λ_{ ̃ρ_f}* ∘ Λ_{ ̃ρ_f} on ONB
         ejout = krausaction(Mw, Rw, onb[j])
-        for i in 1:d^2
+        for i in 1:dA^2
             T[i, j] = tr(onb[i]' * ejout)
         end
     end
@@ -256,7 +255,7 @@ function qmaxcorrcoeff(ρA::Matrix, Ak::Vector, Bk::Vector, f, f0, fpinf)
     imt >= 1e-10 ? throw(ErrorException("Total imaginary part of eigenvalues is over 1e-10")) : nothing
     λ = real.(λ)
 
-    val = sqrt(λ[d^2-1])
+    val = sqrt(λ[dA^2-1])
 
     #There can be numerical error, so we process this a little bit if it exceeds unity
     val > 1 + 1e-8 ? throw(ErrorException("The value is greater than 1+1e-8, so the numerical error is bad")) : nothing
