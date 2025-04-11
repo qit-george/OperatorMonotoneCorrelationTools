@@ -282,4 +282,32 @@ using OperatorMonotoneCorrelationTools
         end
     end
 
+    @testset "genNormDiscWeyl" begin
+        #First we check it returns the correct set on a qubit system
+        d = 2
+        mats = genNormDiscWeyl(d)
+        @test isapprox(mats[1], 1/sqrt(2)*[1 0 ; 0 1], atol=1e-7)
+        @test isapprox(mats[2], 1 / sqrt(2) * [1 0; 0 -1], atol=1e-7)
+        @test isapprox(mats[3], 1 / sqrt(2) * [0 1; 1 0], atol=1e-7)
+        @test isapprox(mats[4], 1 / sqrt(2) * [0 -1; 1 0], atol=1e-7)
+
+        #Then we just check it is an ONB for a few larger dimensions
+        for d = 3:6
+            istraceless = true
+            isnormal = true
+            isorthogonal = true
+            mats = genGellMann(d)
+            for i = 1:d^2-1
+                for j = 1:d^2-1
+                    if i == j
+                        isapprox(tr(mats[i]' * mats[i]), 1, atol=1e-7) ? nothing : isnormal = false
+                    else
+                        isapprox(tr(mats[i]' * mats[j]), 0, atol=1e-7) ? nothing : isorthogonal = false
+                    end
+                end
+            end
+            @test isnormal && isorthogonal
+        end
+    end
+
 end

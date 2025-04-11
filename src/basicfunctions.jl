@@ -190,3 +190,31 @@ function gencompbasis(d)
     end
     return basis
 end
+
+"""
+    genNormDiscWeyl(d)
+
+This function returns the normalized discrete Weyl operators for dimension d.
+"""
+function genNormDiscWeyl(d)
+    ζ = exp(2 * π * 1im / d)
+    X = zeros(d, d)
+    #Define the "Clock Operator"
+    X[1, d] = 1
+    for i = 1:d-1
+        X[i+1, i] = 1
+    end
+    #Define the "Phase Operator"
+    Z = zeros(Complex, d, d)
+    for i = 1:d
+        Z[i, i] = ζ^(i - 1)
+    end
+    Z
+    Wab = Matrix{Complex}[]
+    for i = 0:d-1
+        for j = 0:d-1
+            push!(Wab, 1 / sqrt(d) * X^(i) * Z^(j))
+        end
+    end
+    return Wab
+end
