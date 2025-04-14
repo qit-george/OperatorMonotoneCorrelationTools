@@ -77,7 +77,33 @@ Converts a Choi operator of a linear map to its Kraus representation.
 The identity relies on the vec mapping in the computational bases: ``vec:\\vert j \\rangle_{B} \\langle i \\vert_{A} \\to \\langle i \\vert_{A}vec:\\vert j \\langle_{B}``.
 This is equivalent to stacking columns of the matrix on top of each other, which is the vec mapping for Julia.
 """
-function choitokraus(choi,dA,dB)
+function choitokraus(choi, dA, dB)
+    r = rank(choi)
+    dAB = dA * dB
+    Ak = Matrix{Any}[]
+    Bk = Matrix{Any}[]
+    isHP = false
+    norm(choi - choi') < 1e-12 ? isHP=true : nothing #Checks if it is a Hermitian preserving map
+    if isHP #At some point, one could generalize to Hermitian preserving maps
+        λ, vecs = eigen(choi)
+        if all(>=(-1e-14), λ) #simplified for CP maps
+            for i = 0:rank(choi)-1
+                push!(Ak, sqrt(λ[dAB-i]) * reshape(vecs[:, dAB-i], dB, dA))
+                push!(Bk, sqrt(λ[dAB-i]) * reshape(vecs[:, dAB-i], dB, dA))
+            end
+        else #For general linear maps, need to use the SVD
+            F = svd(choi)
+            for i = 1:r
+                push!(Ak, sqrt(F.S[i]) * reshape(F.U[:, i], dB, dA))
+                push!(Bk, sqrt(F.S[i]) * reshape(F.V[:, i], dB, dA))
+            end
+        end
+    end
+
+    return Ak, Bk
+end
+
+#= function choitokraus(choi,dA,dB)
     r = rank(choi)
     F = svd(choi)
     #One may verify that reshape acts like the inverse of the vec mapping
@@ -90,7 +116,7 @@ function choitokraus(choi,dA,dB)
     end
 
     return Ak,Bk
-end
+end =#
 
 """
     krausaction(Ak,Bk,input)
@@ -189,4 +215,32 @@ function gencompbasis(d)
         init[i] = 0
     end
     return basis
+end
+
+"""
+    genNormDiscWeyl(d)
+
+This function returns the normalized discrete Weyl operators for dimension d.
+"""
+function genNormDiscWeyl(d)
+    ζ = exp(2 * π * 1im / d)
+    X = zeros(d, d)
+    #Define the "Clock Operator"
+    X[1, d] = 1
+    for i = 1:d-1
+        X[i+1, i] = 1
+    end
+    #Define the "Phase Operator"
+    Z = zeros(Complex, d, d)
+    for i = 1:d
+        Z[i, i] = ζ^(i - 1)
+    end
+    Z
+    Wab = Matrix{Complex}[]
+    for i = 0:d-1
+        for j = 0:d-1
+            push!(Wab, 1 / sqrt(d) * X^(i) * Z^(j))
+        end
+    end
+    return Wab
 end
