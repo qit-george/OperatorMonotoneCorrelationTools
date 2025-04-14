@@ -40,6 +40,7 @@ using OperatorMonotoneCorrelationTools
         function f(x)
             return x
         end
+        inprodworks = true
         for d = 1:4
             for p = -2:1:2
                 for t = 1:5
@@ -48,13 +49,16 @@ using OperatorMonotoneCorrelationTools
                     Y = rand(d, d)
                     t = innerproductf(X, Y, sigma, p, f, 0, 1)
                     ttrue = (1 / d)^(p) * tr(X' * Y)
-                    @test isapprox(t, ttrue, atol=1e-10)
+                    isapprox(t, ttrue, atol=1e-10) ? nothing : inprodworks = false
                 end
             end
         end
+        @test inprodworks
         function f(x)
             return sqrt(x)
         end
+
+        inprodworks = true
         for d = 1:4
             for p = -2:1:2
                 for t = 1:5
@@ -63,14 +67,16 @@ using OperatorMonotoneCorrelationTools
                     Y = rand(d, d)
                     t = innerproductf(X, Y, sigma, p, f, 0, 0)
                     ttrue = (1 / d)^(p) * tr(X' * Y)
-                    @test isapprox(t, ttrue, atol=1e-10)
+                    isapprox(t, ttrue, atol=1e-10) ? nothing : inprodworks = false
                 end
             end
         end
+        @test inprodworks
         #tests arithmetic mean
         function f(x)
             return (x + 1) / 2
         end
+        inprodworks = true 
         for d = 1:4
             for p = -2:1:2
                 for t = 1:5
@@ -79,31 +85,34 @@ using OperatorMonotoneCorrelationTools
                     Y = rand(d, d)
                     t = innerproductf(X, Y, sigma, p, f, 1 / 2, 1 / 2)
                     ttrue = (1 / d)^(p) * tr(X' * Y)
-                    @test isapprox(t, ttrue, atol=1e-10)
+                    isapprox(t, ttrue, atol=1e-10) ? nothing : inprodworks = false
                 end
             end
         end
+        @test inprodworks
         #one case where σ is non-uniform
         σ = [1/2 -1/4; -1/4 1/2]
         X = [1 2; 3 5]
         Y = [5 6; 7 4]
+        inprodworks = true
         for p = -2:1/2:2
             function f(x)
                 return x
             end
             ttrue = 11^(2) / 2 * (1 / 4)^(p) - 3 / 2 * (3 / 4)^(p) * f(1 / 3)^(p) - (3 / 4)^(p)
-            @test isapprox(innerproductf(X, Y, σ, p, f, 0, 1), ttrue, atol=1e-6)
+            isapprox(innerproductf(X, Y, σ, p, f, 0, 1), ttrue, atol=1e-6) ? nothing : inprodworks = false
             function f(x)
                 return sqrt(x)
             end
             ttrue = 11^(2) / 2 * (1 / 4)^(p) - 3 / 2 * (3 / 4)^(p) * f(1 / 3)^(p) - (3 / 4)^(p)
-            @test isapprox(innerproductf(X, Y, σ, p, f, 0, 0), ttrue, atol=1e-6)
+            isapprox(innerproductf(X, Y, σ, p, f, 0, 0), ttrue, atol=1e-6) ? nothing : inprodworks = false
             function f(x)
                 return (x + 1) / 2
             end
             ttrue = 11^(2) / 2 * (1 / 4)^(p) - 3 / 2 * (3 / 4)^(p) * f(1 / 3)^(p) - (3 / 4)^(p)
-            @test isapprox(innerproductf(X, Y, σ, p, f, 1 / 2, 1 / 2), ttrue, atol=1e-6)
+            isapprox(innerproductf(X, Y, σ, p, f, 1 / 2, 1 / 2), ttrue, atol=1e-6) ? nothing : inprodworks = false
         end
+        @test inprodworks
     end
 
     @testset "Jfpsigma" begin
@@ -113,6 +122,7 @@ using OperatorMonotoneCorrelationTools
         end
         f0 = 0
         fpinf = 1
+        funcworks = true
         for d = 2:5
             for p = -2:1/2:2
                 sigma = 1 / d * Matrix(I, d, d)
@@ -120,11 +130,13 @@ using OperatorMonotoneCorrelationTools
 
                 Yout = Jfpsigma(Y, sigma, p, f, f0, fpinf)
                 Ytrue = (1 / d)^(p) * Y
-                @test isapprox(Yout, Ytrue, atol=1e-10)
+                isapprox(Yout, Ytrue, atol=1e-10) ? nothing : funcworks = false
             end
         end
+        @test funcworks 
 
         #A non-uniform example
+        funcworks = true
         for i = 1:2
             if i == 1
                 function f(x)
@@ -154,9 +166,10 @@ using OperatorMonotoneCorrelationTools
 
                 Ytrue = [e11 e12; e21 e22]
                 Yout = Jfpsigma(Y, σ, p, f, f0, fpinf)
-                @test isapprox(Yout, Ytrue, atol=1e-10)
+                isapprox(Yout, Ytrue, atol=1e-10) ? nothing : funcworks = false
             end
         end
+        @test funcworks
     end
 
     @testset "getONB" begin
@@ -167,6 +180,7 @@ using OperatorMonotoneCorrelationTools
         end
         f0 = 0
         fpinf = 1
+        funcworks = true
         for d = 2:5
             for p = -2:0.5:2
                 σ = 1 / d * Matrix(I, d, d)
@@ -194,9 +208,10 @@ using OperatorMonotoneCorrelationTools
                     isapprox(onb[i], d^(p / 2) * onbold[i], atol=1e-6) ? nothing : iscorrect = false
                 end
 
-                @test isnormal && isorthogonal && iscorrect
+                isnormal && isorthogonal && iscorrect ? nothing : funcworks = false
             end
         end
+        @test funcworks 
 
         #same thing but with different function
         function f(x)
@@ -204,6 +219,7 @@ using OperatorMonotoneCorrelationTools
         end
         f0 = 1 / 2
         fpinf = 1 / 2
+        funcworks = true
         for d = 2:5
             for p = -2:0.5:2
                 σ = 1 / d * Matrix(I, d, d)
@@ -231,9 +247,10 @@ using OperatorMonotoneCorrelationTools
                     isapprox(onb[i], d^(p / 2) * onbold[i], atol=1e-6) ? nothing : iscorrect = false
                 end
 
-                @test isnormal && isorthogonal && iscorrect
+                isnormal && isorthogonal && iscorrect ? nothing : funcworks = false
             end
         end
+        @test funcworks
 
         #Now we do the same thing, but with random states, so we
         #just check that it generates ONBs
@@ -242,6 +259,7 @@ using OperatorMonotoneCorrelationTools
         end
         f0 = 0
         fpinf = 1
+        funcworks = true
         for d = 2:5
             for p = -2:1:2
                 σ = hsrandomstate(d)
@@ -261,9 +279,10 @@ using OperatorMonotoneCorrelationTools
                     end
                 end
         
-                @test isnormal && isorthogonal
+                isnormal && isorthogonal ? nothing : funcworks = false
             end
         end
+        @test funcworks
         
         #Same thing but with different function
         function f(x)
@@ -271,6 +290,7 @@ using OperatorMonotoneCorrelationTools
         end
         f0 = 1/2
         fpinf = 1/2
+        funcworks = true
         for d = 2:5
             for p = -2:1:2
                 σ = hsrandomstate(d)
@@ -290,9 +310,10 @@ using OperatorMonotoneCorrelationTools
                     end
                 end
         
-                @test isnormal && isorthogonal
+                isnormal && isorthogonal ? nothing : funcworks = false
             end
         end
+        @test funcworks
     end
 
     @testset "SchReversalMap" begin
