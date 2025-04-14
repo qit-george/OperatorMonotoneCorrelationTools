@@ -11,7 +11,7 @@ include("basicfunctions.jl")
 
 export perspective, innerproductf, Jfpsigma, getONB
 export SchReversalMap, getcontractioncoeff
-export Jfpsigmachoi, qmaxcorrcoeff
+export Jfpsigmachoi, qmaxcorrcoeff, qmaxlincorrcoeff
 include("joperatorfunctions.jl")
 
 end

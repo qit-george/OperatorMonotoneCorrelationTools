@@ -535,4 +535,30 @@ using OperatorMonotoneCorrelationTools
         end
         @test functionworks
     end
+
+    @testset "qmaxlincorrcoeff" begin
+        #By Proposition 18, the isotropic states ρ_{d,λ} have maximal correlation coefficient 
+        #of λ. ρ_{d,λ} = Ω_{𝒟_{1-λ}} where 𝒟_{q} denotes the depolarizing channel. So we use
+        #this to check the function works.
+        ρA = 1 / 2 * [1 0; 0 1]
+
+        functionworks = true
+        for k = 0:1/8:1
+            for q = 0:0.1:1
+                #Construct depolarizing channel kraus
+                idMat = [1 0; 0 1]
+                sigmaX = [0 1; 1 0]
+                sigmaY = [0 -1im; 1im 0]
+                sigmaZ = [1 0; 0 -1]
+                Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
+                Bk = Ak
+
+                #
+                val = qmaxlincorrcoeff(ρA, Ak, Bk, k)
+
+                abs(val - (1 - q)) > 1e-6 ? functionworks = false : nothing
+            end
+        end
+        @test functionworks
+    end
 end
