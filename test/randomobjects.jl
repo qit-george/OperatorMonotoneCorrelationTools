@@ -29,4 +29,15 @@ using OperatorMonotoneCorrelationTools
         @test isapprox(ct / s, (n + m) / (n * m + 1), atol=1e-3) # average purity
     end
 
+    @testset "randomquantumchannel" begin
+        funcworks = true
+        for dA = 2:10
+            for dB = 2:10
+                choi = randomquantumchannel(dA, dB)
+                isapprox(partialtrace(choi, dA, dB, 2), Matrix(1I, dA, dA), atol=1e-10) ? nothing : funcworks = false
+                isPSD(choi) ? nothing : funcworks
+            end
+        end
+        funcworks
+    end
 end

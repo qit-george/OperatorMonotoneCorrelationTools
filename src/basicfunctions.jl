@@ -5,6 +5,11 @@ Returns true if X is positive semidefinite operator.
 """
 function isPSD(X)
     λ = eigvals(X)
+    #The eigenvalues may have small imaginary parts
+    imt = sum(imag.(λ))
+    1e-14 < imt <= 1e-10 ? @warn("sum of imaginary parts of eigenvalues between 1e-14 and 1e-10") : nothing
+    imt >= 1e-10 ? throw(ErrorException("Total imaginary part of eigenvalues is over 1e-10")) : nothing
+    λ = real.(λ)
     if all(>=(-1e-14), λ)
         return true 
     else 

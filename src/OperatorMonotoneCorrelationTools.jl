@@ -7,7 +7,7 @@ export partialtrace, basischange, returntocompunitary
 export choitokraus, krausaction, isPSD
 include("basicfunctions.jl")
 
-export Haarrandomunitary, hsrandomstate
+export Haarrandomunitary, hsrandomstate, randomquantumchannel
 include("randomobjects.jl")
 
 export genGellMann, gencompbasis, genNormDiscWeyl
