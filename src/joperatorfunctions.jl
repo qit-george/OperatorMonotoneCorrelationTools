@@ -79,11 +79,12 @@ function Jfpsigma(Y,σ,p,f,f0,fpinf)
 
     # There can be numerical error resulting in imaginary parts in eigenvalues
     # The following controls when you want to be warned about this and/or stop for accuracy reasons
-    imt = sum(imag.(λ))
-    1e-14 < imt <= 1e-10 ?  @warn("sum of imaginary parts of eigenvalues between 1e-14 and 1e-10") : nothing
-    imt >= 1e-10 ? throw(ErrorException("Total imaginary part of eigenvalues is over 1e-10")) : nothing
-    λ = real.(λ)
-    abs(1-sum(λ)) > 1e-6 ? throw(ErrorException("Corrected eigenvalues too unnormalized")) : nothing
+    λ = _makereal(λ)
+    normdiff = abs(1-sum(λ)) 
+    if normdiff > 1e-6 
+        println("Difference from normalization:", normdiff)
+        throw(ErrorException("Difference from normalization too large")) 
+    end
 
     #This computes it in the basis of σ
     for i = 1:d
@@ -249,11 +250,7 @@ function qmaxcorrcoeff(ρA::Matrix, Ak::Vector, Bk::Vector, f, f0, fpinf)
     λ = eigvals(T)
 
     # There can be numerical error resulting in imaginary parts in eigenvalues
-    # The following controls when you want to be warned about this and/or stop for accuracy reasons
-    imt = sum(imag.(λ))
-    1e-14 < imt <= 1e-10 ? @warn("sum of imaginary parts of eigenvalues between 1e-14 and 1e-10") : nothing
-    imt >= 1e-10 ? throw(ErrorException("Total imaginary part of eigenvalues is over 1e-10")) : nothing
-    λ = real.(λ)
+    λ = _makereal(λ)
 
     val = sqrt(λ[dA^2-1])
 
@@ -283,13 +280,12 @@ function qmaxlincorrcoeff(ρA::Matrix, Ak::Vector, Bk::Vector, k)
     ρAsq = sqrt(ρA)
     ρATsq = sqrt(transpose(ρA))
     ρAbar = conj.(ρA)
-    ρAbark = (ρA)^(-k / 2)
-    ρAbarkp = (conj.(ρA))^(-(1 - k) / 2)
+    ρAbark = (ρAbar)^(-k / 2)
+    ρAbarkp = (ρAbar)^(-(1 - k) / 2)
 
     ρB = krausaction(Ak, Bk, ρA)
     ρBk = ρB^(-k / 2)
     ρBkp = ρB^(-(1 - k) / 2)
-    dB = size(ρB)[1]
 
     #Kraus of Λ_{ ̃ρ_k}
     Gk = Matrix{Any}[]
@@ -328,12 +324,8 @@ function qmaxlincorrcoeff(ρA::Matrix, Ak::Vector, Bk::Vector, k)
     λ = eigvals(T)
 
     # There can be numerical error resulting in imaginary parts in eigenvalues
-    # The following controls when you want to be warned about this and/or stop for accuracy reasons
-    imt = sum(imag.(λ))
-    1e-14 < imt <= 1e-10 ? @warn("sum of imaginary parts of eigenvalues between 1e-14 and 1e-10") : nothing
-    imt >= 1e-10 ? throw(ErrorException("Total imaginary part of eigenvalues is over 1e-10")) : nothing
-    λ = real.(λ)
-
+    λ = _makereal(λ)
+    
     val = sqrt(λ[dA^2-1])
 
     #There can be numerical error, so we process this a little bit if it exceeds unity

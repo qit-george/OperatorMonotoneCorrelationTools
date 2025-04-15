@@ -1,4 +1,21 @@
 """
+    isPSD(X)
+
+Returns true if X is positive semidefinite operator.
+"""
+function isPSD(X)
+    λ = eigvals(X)
+    #The eigenvalues may have small imaginary parts
+    λ = _makereal(λ)
+    if all(>=(-1e-14), λ)
+        return true 
+    else 
+        return false
+    end
+end
+
+
+"""
     partialtrace(ρ,dA,dB,sys)
 
 This function computes the partial trace on a bipartite state ``\\rho_{AB}``.
@@ -86,6 +103,7 @@ function choitokraus(choi, dA, dB)
     norm(choi - choi') < 1e-12 ? isHP=true : nothing #Checks if it is a Hermitian preserving map
     if isHP #At some point, one could generalize to Hermitian preserving maps
         λ, vecs = eigen(choi)
+        λ = _makereal(λ)
         if all(>=(-1e-14), λ) #simplified for CP maps
             for i = 0:rank(choi)-1
                 push!(Ak, sqrt(λ[dAB-i]) * reshape(vecs[:, dAB-i], dB, dA))
@@ -102,21 +120,6 @@ function choitokraus(choi, dA, dB)
 
     return Ak, Bk
 end
-
-#= function choitokraus(choi,dA,dB)
-    r = rank(choi)
-    F = svd(choi)
-    #One may verify that reshape acts like the inverse of the vec mapping
-    
-    Ak = Matrix{Any}[]
-    Bk = Matrix{Any}[]
-    for i = 1:rank(choi)
-        push!(Ak, reshape(sqrt(F.S[i])*F.U[:,i], (dA,dB)))
-        push!(Bk, reshape(sqrt(F.S[i])*F.Vt'[:,i], (dA,dB)))
-    end
-
-    return Ak,Bk
-end =#
 
 """
     krausaction(Ak,Bk,input)
@@ -137,110 +140,4 @@ function krausaction(Ak,Bk,input)
     end
 
     return rhoout
-end
-
-"""
-    RandomUnitary(d)
-
-This function returns a unitary of dimension d according to the Haar measure.
-The construction follows "How to generate a random unitary matrix" by
-Maris Ozols.
-"""
-function Haarrandomunitary(d)
-    Z = randn(d,d) + 1im*randn(d,d)
-    Q,R = qr(Z)
-    Λ = diagm(sign.(diag(R)))
-    return Q*Λ
-end
-
-"""
-    hsrandomstate(d::Int,k::Int=d)
-
-Draws a density matrix according to the ``\\mu_{nk}`` 
-distribution. The method of construction follows Lemma 1
-of "Asymptotics of random density matrices" by Ion Nechita
-"""
-function hsrandomstate(d::Int,k::Int=d)
-    #Construct Z that is made up of iid 𝒩_{ℂ}(0,1)
-    #which means Z[i,j] = X[i,j] +iY[i,j] where X,Y ∼ 𝒩(0,1/2)
-    #thus we need to rescale randn by 1/2
-    Z= sqrt(1/2)*randn(d,k) + sqrt(1/2)*1im*randn(d,k)
-    return( Z*Z'/tr(Z*Z'))
-end
-
-"""
-    genGellMan(d)
-
-This function constructs and returns the generalized Gell Mann matrices.
-"""
-function genGellMann(d)
-    genGMmats = Matrix{Complex}[]
-    for n = 1:d
-        for m = 1:d
-            if n==d && m == d
-                nothing
-            elseif n == m && n != d
-                Gnn = zeros(d,d)
-                for i = 1:n
-                    Gnn[i,i] = 1
-                end
-                Gnn[n+1,n+1] = -n
-                Gnn = 1/sqrt(n*(n+1))*Gnn
-                push!(genGMmats,Gnn)
-            elseif n < m
-                Enm = zeros(d,d)
-                Enm[n,m] = 1
-                push!(genGMmats,1/sqrt(2)*(Enm + Enm'))
-            else
-                Enm = zeros(d,d)
-                Enm[n,m] = 1
-                push!(genGMmats,1im/sqrt(2)*(Enm - Enm'))
-            end
-        end
-    end
-    return genGMmats
-end
-
-"""
-    gencompbasis(d)
-
-This function returns the computational basis of dimension d.
-"""
-function gencompbasis(d)
-    basis = Vector{Any}[]
-    init = zeros(d)
-    for i = 1:d
-        init[i] = 1
-        push!(basis,init)
-        init[i] = 0
-    end
-    return basis
-end
-
-"""
-    genNormDiscWeyl(d)
-
-This function returns the normalized discrete Weyl operators for dimension d.
-"""
-function genNormDiscWeyl(d)
-    ζ = exp(2 * π * 1im / d)
-    X = zeros(d, d)
-    #Define the "Clock Operator"
-    X[1, d] = 1
-    for i = 1:d-1
-        X[i+1, i] = 1
-    end
-    #Define the "Phase Operator"
-    Z = zeros(Complex, d, d)
-    for i = 1:d
-        Z[i, i] = ζ^(i - 1)
-    end
-    Z
-    Wab = Matrix{Complex}[]
-    for i = 0:d-1
-        for j = 0:d-1
-            push!(Wab, 1 / sqrt(d) * X^(i) * Z^(j))
-        end
-    end
-    return Wab
 end
