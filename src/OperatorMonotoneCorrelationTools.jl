@@ -18,4 +18,7 @@ export SchReversalMap, getcontractioncoeff
 export Jfpsigmachoi, qmaxcorrcoeff, qmaxlincorrcoeff
 include("joperatorfunctions.jl")
 
+export _makereal, _parallelchan, _depolkraus
+include("helperfunctions.jl")
+
 end
