@@ -141,3 +141,24 @@ function krausaction(Ak,Bk,input)
 
     return rhoout
 end
+
+"""
+    swapoperator(d)
+
+Returns the swap operator between two spaces of dimension d
+"""
+function swapoperator(d :: Integer)
+    𝔽 = zeros(d^2,d^2)
+    Eij = zeros(d, d)
+    Eji = zeros(d,d)
+    for i = 1:d
+        for j = 1:d
+            Eij[i,j] = 1
+            Eji[j,i] = 1
+            𝔽 = 𝔽 + kron(Eij, Eji)
+            Eij[i,j] = 0
+            Eji[j,i] = 0
+        end
+    end
+    return 𝔽
+end

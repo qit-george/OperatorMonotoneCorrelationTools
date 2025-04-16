@@ -212,4 +212,18 @@ using OperatorMonotoneCorrelationTools
         X = [1 0 ; 0 -1]
         @test ~isPSD(X)
     end
+
+    @testset "swapoperator" begin
+        @test isapprox(swapoperator(2),[1 0 0 0 ; 0 0 1 0 ; 0  1 0 0  ; 0 0 0 1], atol=1e-6)
+        S3 = [1 0 0 0 0 0 0 0 0 ; 
+              0 0 0 1 0 0 0 0 0 ;
+              0 0 0 0 0 0 1 0 0 ;
+              0 1 0 0 0 0 0 0 0 ;
+              0 0 0 0 1 0 0 0 0 ;
+              0 0 0 0 0 0 0 1 0 ;
+              0 0 1 0 0 0 0 0 0 ;
+              0 0 0 0 0 1 0 0 0 ;
+              0 0 0 0 0 0 0 0 1 ]
+        @test isapprox(swapoperator(3),S3, atol=1e-6)
+    end
 end

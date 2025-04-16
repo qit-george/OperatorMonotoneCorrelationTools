@@ -39,3 +39,36 @@ function _depolkraus(q)
         Bk = Ak
         return Ak, Bk
 end
+
+"""
+    This function returns the kraus operators for the transpose map
+"""
+function _transposekraus(d)
+    Ak = Matrix{Any}[]
+    Bk = Matrix{Any}[]
+    for i = 1:d
+        for j = 1:d
+            Eij = zeros(d, d)
+            Eij[i, j] = 1
+            push!(Ak, Eij)
+            push!(Bk, transpose(Eij))
+        end
+    end
+    return Ak, Bk
+end
+
+function _swapoperator(d)
+    𝔽 = zeros(d^2,d^2)
+    Eij = zeros(d, d)
+    Eji = zeros(d,d)
+    for i = 1:d
+        for j = 1:d
+            Eij[i,j] = 1
+            Eji[j,i] = 1
+            𝔽 = 𝔽 + kron(Eij, Eji)
+            Eij[i,j] = 0
+            Eji[j,i] = 0
+        end
+    end
+    return 𝔽
+end

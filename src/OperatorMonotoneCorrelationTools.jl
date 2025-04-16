@@ -4,7 +4,7 @@ module OperatorMonotoneCorrelationTools
 using LinearAlgebra
 
 export partialtrace, basischange, returntocompunitary
-export choitokraus, krausaction, isPSD
+export choitokraus, krausaction, isPSD, swapoperator
 include("basicfunctions.jl")
 
 export Haarrandomunitary, hsrandomstate, randomquantumchannel
