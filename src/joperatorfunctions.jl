@@ -231,9 +231,9 @@ function qmaxcorrcoeff(ρA::Matrix, Ak::Vector, Bk::Vector, f, f0, fpinf)
         end
     end
 
-    #Get basis of Herm(A) with respect to HS
+    #Get ONB of Herm(A) with respect to HS
     onb = genGellMann(dA)
-    pushfirst!(onb, ρAsq)
+    pushfirst!(onb, 1/sqrt(dA)*Matrix(1I,dA,dA))
 
     #Get standard matrix T
     T = zeros(Complex, dA^2, dA^2)
@@ -305,9 +305,9 @@ function qmaxlincorrcoeff(ρA::Matrix, Ak::Vector, Bk::Vector, k)
         end
     end
 
-    #Get basis of Herm(A) with respect to HS
+    #Get ONB of Herm(A) with respect to HS
     onb = genGellMann(dA)
-    pushfirst!(onb, ρAsq)
+    pushfirst!(onb, 1/sqrt(dA)*Matrix(1I,dA,dA))
 
     #Get standard matrix T
     T = zeros(Complex, dA^2, dA^2)
