@@ -162,3 +162,18 @@ function swapoperator(d :: Integer)
     end
     return 𝔽
 end
+
+"""
+    WernerHolevochoi(d,q)
+Returns the Choi operator of the Werner-Holevo channel  with
+parameter q acting on a d-dimensional space: 
+``\\mathcal{W}_{q} := (1-q) \\mathcal{W}_{sym} + q \\mathcal{W}_{as}.``
+"""
+function WernerHolevochoi(d,q)
+    id = Matrix(1I,d^2,d^2)
+    𝔽 = swapoperator(d)
+    choiWH0 = 1/(d + 1) * (id + 𝔽)
+    choiWH1 = 1/(d - 1) * (id - 𝔽)
+    choi = (1-q)*choiWH0 + q*choiWH1
+    return choi
+end

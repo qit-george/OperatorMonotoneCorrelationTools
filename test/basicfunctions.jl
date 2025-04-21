@@ -226,4 +226,31 @@ using OperatorMonotoneCorrelationTools
               0 0 0 0 0 0 0 0 1 ]
         @test isapprox(swapoperator(3),S3, atol=1e-6)
     end
+
+    @testset "WernerHolevochoi" begin
+        @test isapprox(WernerHolevochoi(2,0),1/3*[2 0 0 0 ; 0 1 1 0 ; 0 1 1 0 ; 0 0 0 2], atol=1e-6)
+        @test isapprox(WernerHolevochoi(2,1),[0 0 0 0 ; 0 1 -1 0 ; 0 -1 1 0 ; 0 0 0 0], atol=1e-6)
+        mix = 1/4*[2 0 0 0 ; 0 1 1 0 ; 0 1 1 0 ; 0 0 0 2] + 1/4*[0 0 0 0 ; 0 1 -1 0 ; 0 -1 1 0 ; 0 0 0 0]
+        @test isapprox(WernerHolevochoi(2,1/4),mix,atol=1e-6)
+        WH30 = [2 0 0 0 0 0 0 0 0 ; 
+                0 1 0 1 0 0 0 0 0 ;
+                0 0 1 0 0 0 1 0 0 ;
+                0 1 0 1 0 0 0 0 0 ;
+                0 0 0 0 2 0 0 0 0 ;
+                0 0 0 0 0 1 0 1 0 ;
+                0 0 1 0 0 0 1 0 0 ;
+                0 0 0 0 0 1 0 1 0 ;
+                0 0 0 0 0 0 0 0 2 ]
+        @test isapprox(WernerHolevochoi(3,0),1/4*WH30, atol=1e-6)
+        WH31 = [0 0 0 0 0 0 0 0 0 ; 
+                0 1 0 -1 0 0 0 0 0 ;
+                0 0 1 0 0 0 -1 0 0 ;
+                0 -1 0 1 0 0 0 0 0 ;
+                0 0 0 0 0 0 0 0 0 ;
+                0 0 0 0 0 1 0 -1 0 ;
+                0 0 -1 0 0 0 1 0 0 ;
+                0 0 0 0 0 -1 0 1 0 ;
+                0 0 0 0 0 0 0 0 0 ]
+        @test isapprox(WernerHolevochoi(3,1),1/2*WH31, atol=1e-6)
+    end
 end
