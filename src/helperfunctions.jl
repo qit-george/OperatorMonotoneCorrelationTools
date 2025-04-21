@@ -13,7 +13,9 @@ function _makereal(x :: Vector, tol=1e-10)
 end
 
 """
-    This function returns the Kraus operators of a channel being ran twice in parallel.
+    _parallelchan(Ak,Bk)
+
+This function returns the Kraus operators of a channel being ran twice in parallel.
 """
 function _parallelchan(Ak,Bk)
     Ak2 = Matrix{Any}[]
@@ -38,4 +40,21 @@ function _depolkraus(q)
         Ak = [sqrt(1 - 3 * q / 4) * idMat, sqrt(q / 4) * sigmaX, sqrt(q / 4) * sigmaY, sqrt(q / 4) * sigmaZ]
         Bk = Ak
         return Ak, Bk
+end
+
+"""
+    This function returns the kraus operators for the transpose map
+"""
+function _transposekraus(d)
+    Ak = Matrix{Any}[]
+    Bk = Matrix{Any}[]
+    for i = 1:d
+        for j = 1:d
+            Eij = zeros(d, d)
+            Eij[i, j] = 1
+            push!(Ak, Eij)
+            push!(Bk, transpose(Eij))
+        end
+    end
+    return Ak, Bk
 end

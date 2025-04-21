@@ -141,3 +141,39 @@ function krausaction(Ak,Bk,input)
 
     return rhoout
 end
+
+"""
+    swapoperator(d)
+
+Returns the swap operator between two spaces of dimension d
+"""
+function swapoperator(d :: Integer)
+    𝔽 = zeros(d^2,d^2)
+    Eij = zeros(d, d)
+    Eji = zeros(d,d)
+    for i = 1:d
+        for j = 1:d
+            Eij[i,j] = 1
+            Eji[j,i] = 1
+            𝔽 = 𝔽 + kron(Eij, Eji)
+            Eij[i,j] = 0
+            Eji[j,i] = 0
+        end
+    end
+    return 𝔽
+end
+
+"""
+    WernerHolevochoi(d,q)
+Returns the Choi operator of the Werner-Holevo channel  with
+parameter q acting on a d-dimensional space: 
+``\\mathcal{W}_{q} := (1-q) \\mathcal{W}_{sym} + q \\mathcal{W}_{as}.``
+"""
+function WernerHolevochoi(d,q)
+    id = Matrix(1I,d^2,d^2)
+    𝔽 = swapoperator(d)
+    choiWH0 = 1/(d + 1) * (id + 𝔽)
+    choiWH1 = 1/(d - 1) * (id - 𝔽)
+    choi = (1-q)*choiWH0 + q*choiWH1
+    return choi
+end
