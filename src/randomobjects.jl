@@ -15,10 +15,10 @@ end
 """
     hsrandomstate(d::Int,k::Int=d, re=false)
 
-Draws a density matrix according to the ``\\mu_{nk}`` 
+Draws a density matrix according to the ``\\mu_{n,k}`` 
 distribution. The method of construction follows Lemma 1
-of "Asymptotics of random density matrices" by Ion Nechita.
-In the case the variable re is set to true, it generates the
+of ["Asymptotics of random density matrices" by Ion Nechita](https://arxiv.org/abs/quant-ph/0702154).
+In the case the variable re is set to true, the function generates
 a random state with only real entries. No analytic structure
 about this measure is guaranteed.
 """

@@ -1,8 +1,9 @@
 """
-    Eigenvalues need to be real, but numerical methods
-    sometimes have some small error. This checks if there 
-    will be an issue and if there won't be, it returns the
-    vector with real elements.
+    _makereal(x :: Vector, tol=1e-10)
+
+Eigenvalues need to be real, but numerical methods sometimes have some small error. 
+This checks if there will be an issue and if there won't be, it returns the
+vector with real elements.
 """
 function _makereal(x :: Vector, tol=1e-10)
     #The eigenvalues may have small imaginary parts
@@ -30,7 +31,9 @@ function _parallelchan(Ak,Bk)
 end
 
 """
-    This function returns the Kraus operators of the qubit depolarizing channel with parameter q
+    _depolkraus(q)
+
+This function returns the Kraus operators of the qubit depolarizing channel with parameter ``q.``
 """
 function _depolkraus(q)
     idMat = [1 0; 0 1]
@@ -43,7 +46,9 @@ function _depolkraus(q)
 end
 
 """
-    This function returns the kraus operators for the transpose map
+    _transposekraus(d)
+
+This function returns the Kraus operators for the transpose map acting on dimension ``d.``
 """
 function _transposekraus(d)
     Ak = Matrix{Any}[]

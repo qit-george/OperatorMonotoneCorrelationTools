@@ -4,11 +4,13 @@ authors = ["Ian George <qit.george@gmail.com> and contributors"]
 version = "0.1.0"
 
 [deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 RandomMatrices = "2576dda1-a324-5b11-aa66-c48ed7e3c618"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 
 [compat]
+Documenter = "1.10.1"
 RandomMatrices = "0.5.5"
 julia = "1"
 

@@ -3,15 +3,15 @@
 
 For a given function f, this computes the perspective function 
 ```math
-    P_{f}(x,y) \\coloneq \\begin{cases}
-        yf(x/y) & x,y > 0  , \\
-        yf(0^{+}) & x = 0 , \\
+    P_{f}(x,y) \\coloneqq \\begin{cases}
+        yf(x/y) & x,y > 0  , \\\\
+        yf(0^{+}) & x = 0 , \\\\
         xf'(+\\infty) & y = 0 
     \\end{cases}
 ```
-where ``0f(0/0) \\coloneq 0``, ``0\\cdot \\infty \\coloneq 0``,
+where ``0f(0/0) \\coloneqq 0``, ``0\\cdot \\infty \\coloneqq 0``,
 ```math
-    f(0^{+}) \\coloneq \\lim_{x \\downarrow 0} f(x)  , \\quad \\text{and} \\quad f'(+\\infty) \\coloneq \\lim_{x \\to +\\infty} \\frac{f(x)}{x} . 
+    f(0^{+}) \\coloneqq \\lim_{x \\downarrow 0} f(x)  , \\quad \\text{and} \\quad f'(+\\infty) \\coloneqq \\lim_{x \\to +\\infty} \\frac{f(x)}{x} . 
 ```
 We note that we allow one to control f0 and fpinf. The function will not work if these values are wrong. 
 We assume you will put Inf (resp. -Inf) if f0 or fpinf is infinite.
@@ -42,7 +42,7 @@ end
     innerproductf(X,Y,sigma,p,f,f0,fpinf)
 
 This function computes ``\\langle X , Y \\rangle_{\\mathbf{J}^{p}_{f,\\sigma}}``.
-Note that it does not check the function f is an operator monotone function.
+Note that it does not check the function ``f`` is an operator monotone function.
 """
 function innerproductf(X,Y,sigma,p,f,f0,fpinf)
     #Note that the eigenvectors are ordered according to increasing eigenvalues
@@ -131,11 +131,11 @@ function getONB(σ,p,f,f0,fpinf)
 end
 
 """
-   SchReversalMap(X,Ak,Bk,σ,f,f0,fpinf)
+    SchReversalMap(X,Ak,Bk,σ,f,f0,fpinf)
    
-Applies the Schrodinger reversal map to X according to f,ℰ,σ. 
-ℰ is presumed to be provided in its Kraus operator form.
-It is assumed X, Ak, Bk, and σ are all written in the computational basis.
+Applies the Schrodinger reversal map to X according to ``f``,``\\mathcal{E}``, and ``σ.`` 
+``\\mathcal{E}`` is presumed to be provided in its Kraus operator form.
+It is assumed all inputs are expressed in the computational basis.
 """
 function SchReversalMap(X,Ak,Bk,σ,f,f0,fpinf)
     σout = krausaction(Ak,Bk,σ)
@@ -147,8 +147,8 @@ end
 """
     getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
 
-This returns the contraction coefficient ``\\eta_{\\chi^{2}_{f}(\\mathcal{E},\\sigma)`` 
-for a full rank input state σ and symmetric-inducing operator monotone function f.
+This returns the contraction coefficient ``\\eta_{\\chi^{2}_{f}}(\\mathcal{E},\\sigma)`` 
+for a full rank input state ``\\sigma`` and symmetric-inducing operator monotone function ``f.``
 """
 function getcontractioncoeff(Ak, Bk, σ, f, f0, fpinf)
     d = size(σ)[1]
@@ -176,7 +176,7 @@ end
 
 This function returns the Choi operator of ``\\mathbf{J}_{f,\\sigma}^{p}.``
 We note this has a specific function for obtaining the Choi operator
-to force the user to consider p,f,f0,fpinf.
+to force the user to consider ``p,f,f(0+),f'(+\\inf).``
 """
 function Jfpsigmachoi(σ,p,f,f0,fpinf)
     d = size(σ)[1]
@@ -196,7 +196,7 @@ end
     qmaxcorrcoeff(ρA::Matrix, Ak::Vector, Bk::Vector, f, f0, fpinf)
 
 This function computes the maximal correlation coefficient ``\\mu_{f}(\\rho_{AB})``
-when given ``\\rho_{A}`` and the kraus operators of ``\\mathcal{E}`` such that 
+when given ``\\rho_{A}`` and the Kraus operators of ``\\mathcal{E}`` such that 
 ``\\rho_{AB} = (\\text{id}_{A} \\otimes \\mathcal{E})(\\psi_{\\rho_{A}})`` where
 ``\\psi_{\\rho_{A}}`` is the canonical purification of ``\\rho_{A}``.
 """
@@ -269,7 +269,7 @@ end
 
 This function computes the maximal correlation coefficient ``\\mu_{f_{k}}(\\rho_{AB})``
 for ``f_{k}(x) = x^{k}.`` Currently it requires that it is given ``\\rho_{A}`` and 
-the kraus operators of ``\\mathcal{E}`` such that 
+the Kraus operators of ``\\mathcal{E}`` such that 
 ``\\rho_{AB} = (\\text{id}_{A} \\otimes \\mathcal{E})(\\psi_{\\rho_{A}})`` where
 ``\\psi_{\\rho_{A}}`` is the canonical purification of ``\\rho_{A}``.
 """

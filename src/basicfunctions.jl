@@ -1,7 +1,7 @@
 """
     isPSD(X)
 
-Returns true if X is positive semidefinite operator.
+Returns true if X is a positive semidefinite operator.
 """
 function isPSD(X)
     λ = eigvals(X)
@@ -91,7 +91,7 @@ end
     choitokraus(choi,dA,dB)
 
 Converts a Choi operator of a linear map to its Kraus representation.
-The identity relies on the vec mapping in the computational bases: ``vec:\\vert j \\rangle_{B} \\langle i \\vert_{A} \\to \\langle i \\vert_{A}vec:\\vert j \\langle_{B}``.
+The identity relies on the vec mapping in the computational bases: ``vec:\\vert j \\rangle_{B} \\langle i \\vert_{A} \\to \\langle i \\vert_{A} \\langle j \\vert _{B}``.
 This is equivalent to stacking columns of the matrix on top of each other, which is the vec mapping for Julia.
 """
 function choitokraus(choi, dA, dB)
@@ -124,7 +124,8 @@ end
 """
     krausaction(Ak,Bk,input)
 
-Implements the action of a linear map given its kraus operators.
+Implements the action of a linear map ``\\Phi_{A \\to B}`` given its Kraus operators ``\\{A_{k},B_{k}\\}_{k}``,
+i.e.  ``\\Phi(X) = \\sum_{k} A_{k}XB_{k}^{\\ast}``.
 """
 function krausaction(Ak,Bk,input)
     #Sanity checks
@@ -145,7 +146,8 @@ end
 """
     swapoperator(d)
 
-Returns the swap operator between two spaces of dimension d
+Returns the swap operator ``\\mathbb{F} = \\sum_{i,j \\in [d]} \\vert i \\langle \\rangle j \\vert \\otimes \\vert j \\langle \\rangle i \\vert ,``
+where ``d`` denotes the dimension.
 """
 function swapoperator(d :: Integer)
     𝔽 = zeros(d^2,d^2)
