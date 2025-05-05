@@ -16,3 +16,7 @@ makedocs(;
         "Helper Functions" => "helperfunctions.md",
     ],
 )
+
+deploydocs(
+    repo = "github.com/qit-george/OperatorMonotoneCorrelationTools.jl.git",
+)
