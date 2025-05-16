@@ -107,7 +107,7 @@ end
 
 println("The following shows that for a random 2->d channel and a random quantum state the
 numerical stability is rather bad.")
-@testset "qubit-to-qudit & random state large error" begin
+@testset "qubit-to-qudit & random state error >0.005" begin
     dA = 2
     maxdev = 0
     for dB = 2:7
@@ -130,5 +130,5 @@ numerical stability is rather bad.")
         println("deviation from tensorization:",dev)
         dev > maxdev ? maxdev = dev : nothing
     end
-    @test maxdev > 1e-2
+    @test maxdev > 0.005
 end
